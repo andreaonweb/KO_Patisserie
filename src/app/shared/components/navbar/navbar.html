@@ -70,7 +70,7 @@
 
   <div class="cart-panel__footer">
     <p class="cart-panel__total">Total: {{ cart.total() | currency:'EUR' }}</p>
-    <button class="btn-primary">Hacer pedido ✨</button>
+    <button class="btn-primary" [routerLink]="'/checkout'" (click)="toggleCart()">Hacer pedido ✨</button>
   </div>
   }
 </aside>
