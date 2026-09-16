@@ -1,13 +1,11 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
 # Compiled output
-/dist
+/ko_front/dist
 /tmp
 /out-tsc
 /bazel-out
 
 # Node
-/node_modules
+/ko_front/node_modules
 npm-debug.log
 yarn-error.log
 
@@ -21,16 +19,16 @@ yarn-error.log
 *.sublime-workspace
 
 # Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/mcp.json
+ko_front/.vscode/*
+!ko_front/.vscode/settings.json
+!ko_front/.vscode/tasks.json
+!ko_front/.vscode/launch.json
+!ko_front/.vscode/extensions.json
+!ko_front/.vscode/mcp.json
 .history/*
 
 # Miscellaneous
-/.angular/cache
+/ko_front/.angular/cache
 .sass-cache/
 /connect.lock
 /coverage
