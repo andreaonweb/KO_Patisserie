@@ -1,0 +1,55 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.confirmation {
+  max-width: 480px;
+  margin: 4rem auto;
+  padding: 0 1.5rem;
+  text-align: center;
+
+  &__loading,
+  &__not-found {
+    color: $text-muted;
+  }
+
+  &__card {
+    @include card;
+    padding: 2rem;
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  &__id {
+    color: $text-muted;
+    margin-bottom: 1.5rem;
+  }
+
+  &__items {
+    list-style: none;
+    text-align: left;
+    margin-bottom: 1rem;
+
+    li {
+      padding: 0.35rem 0;
+      border-bottom: 1px solid $border;
+    }
+  }
+
+  &__total {
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+
+  &__pickup {
+    background: $secondary;
+    border-radius: $radius-sm;
+    padding: 1rem;
+
+    p {
+      margin: 0.15rem 0;
+    }
+  }
+}

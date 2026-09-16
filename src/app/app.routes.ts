@@ -30,5 +30,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/checkout/checkout').then(m => m.CheckoutComponent),
     canActivate: [authGuard],
   },
+  {
+    path: 'checkout/confirmacion/:id',
+    loadComponent: () => import('./pages/checkout/confirmation').then(m => m.ConfirmationComponent),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'home' },
 ];
