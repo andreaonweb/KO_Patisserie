@@ -1,0 +1,79 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.orders {
+  max-width: 640px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+
+  &__header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      color: $text-muted;
+      margin: 0;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    color: $text-muted;
+  }
+
+  &__list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__item {
+    @include card;
+    padding: 1rem 1.25rem;
+  }
+
+  &__item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    color: $text-muted;
+  }
+
+  &__status {
+    border-radius: $radius-xl;
+    padding: 0.2rem 0.7rem;
+    font-weight: 600;
+    background: $secondary;
+
+    &--listo {
+      background: $accent-light;
+      color: $accent;
+    }
+
+    &--entregado {
+      background: $border;
+    }
+  }
+
+  &__item-products {
+    list-style: none;
+    margin-bottom: 0.5rem;
+
+    li {
+      padding: 0.15rem 0;
+    }
+  }
+
+  &__item-total {
+    font-weight: 700;
+    text-align: right;
+  }
+}

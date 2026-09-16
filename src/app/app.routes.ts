@@ -35,5 +35,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/checkout/confirmation').then(m => m.ConfirmationComponent),
     canActivate: [authGuard],
   },
+  {
+    path: 'pedidos',
+    loadComponent: () => import('./pages/orders/orders').then(m => m.OrdersComponent),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'home' },
 ];
