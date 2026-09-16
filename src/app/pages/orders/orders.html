@@ -1,0 +1,31 @@
+<section class="orders">
+  <div class="orders__header">
+    <h1>Mis pedidos</h1>
+    <p>Historial de tus compras en Shirayuki 🌸</p>
+  </div>
+
+  @if (loadError()) {
+  <p class="orders__error">{{ loadError() }}</p>
+  }
+
+  @if (orders().length === 0) {
+  <p class="orders__empty">Todavía no hiciste ningún pedido.</p>
+  } @else {
+  <ul class="orders__list">
+    @for (order of orders(); track order.id) {
+    <li class="orders__item">
+      <div class="orders__item-header">
+        <span>{{ order.createdAt | date:'d MMM y, HH:mm' }}</span>
+        <span class="orders__status orders__status--{{ order.status }}">{{ order.status }}</span>
+      </div>
+      <ul class="orders__item-products">
+        @for (item of order.items; track item.productId) {
+        <li>{{ item.name }} × {{ item.quantity }}</li>
+        }
+      </ul>
+      <p class="orders__item-total">Total: {{ order.total | currency:'EUR' }}</p>
+    </li>
+    }
+  </ul>
+  }
+</section>

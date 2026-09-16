@@ -1,0 +1,45 @@
+<section class="checkout">
+  <div class="checkout__header">
+    <h1>Confirmar pedido</h1>
+    <p>Retiro en tienda · Revisá tu pedido y dejanos tus datos</p>
+  </div>
+
+  @if (error()) {
+  <p class="checkout__error">{{ error() }}</p>
+  }
+
+  <ul class="checkout__summary">
+    @for (item of cartItems(); track item.product.id) {
+    <li class="checkout__item">
+      <span class="checkout__item-emoji">{{ item.product.emoji }}</span>
+      <div class="checkout__item-info">
+        <p class="checkout__item-name">{{ item.product.name }}</p>
+        <p class="checkout__item-qty">{{ item.product.price | currency:'EUR' }} × {{ item.quantity }}</p>
+      </div>
+    </li>
+    }
+  </ul>
+
+  <p class="checkout__total">Total: {{ cart.total() | currency:'EUR' }}</p>
+
+  <form class="checkout__form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="checkout__field">
+      <label for="pickupName">Nombre</label>
+      <input id="pickupName" type="text" formControlName="pickupName" />
+    </div>
+
+    <div class="checkout__field">
+      <label for="pickupPhone">Teléfono</label>
+      <input id="pickupPhone" type="tel" formControlName="pickupPhone" />
+    </div>
+
+    <div class="checkout__field">
+      <label for="pickupTime">Horario de retiro</label>
+      <input id="pickupTime" type="text" placeholder="Ej: Hoy 18:00" formControlName="pickupTime" />
+    </div>
+
+    <button type="submit" class="checkout__submit" [disabled]="form.invalid || saving()">
+      {{ saving() ? 'Confirmando…' : 'Hacer pedido ✨' }}
+    </button>
+  </form>
+</section>

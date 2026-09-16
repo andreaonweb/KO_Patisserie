@@ -25,5 +25,20 @@ export const routes: Routes = [
     path: 'auth',
     loadComponent: () => import('./pages/auth/auth').then(m => m.AuthComponent),
   },
+  {
+    path: 'checkout',
+    loadComponent: () => import('./pages/checkout/checkout').then(m => m.CheckoutComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'checkout/confirmacion/:id',
+    loadComponent: () => import('./pages/checkout/confirmation').then(m => m.ConfirmationComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'pedidos',
+    loadComponent: () => import('./pages/orders/orders').then(m => m.OrdersComponent),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'home' },
 ];

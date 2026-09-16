@@ -1,0 +1,105 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.checkout {
+  max-width: 560px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+
+  &__header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      color: $text-muted;
+      margin: 0;
+    }
+  }
+
+  &__error {
+    background: #fdeceb;
+    color: #c0392b;
+    padding: 0.75rem 1rem;
+    border-radius: $radius-sm;
+    margin-bottom: 1rem;
+  }
+
+  &__summary {
+    list-style: none;
+    @include card;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid $border;
+    }
+  }
+
+  &__item-emoji {
+    font-size: 1.5rem;
+  }
+
+  &__item-name {
+    font-weight: 600;
+  }
+
+  &__item-qty {
+    color: $text-muted;
+    font-size: 0.85rem;
+  }
+
+  &__total {
+    text-align: right;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+
+  &__form {
+    @include card;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: $text-dark;
+    }
+
+    input {
+      border: 1px solid $border;
+      border-radius: $radius-sm;
+      padding: 0.5rem 0.75rem;
+      font-family: $font-main;
+      font-size: 0.9rem;
+    }
+  }
+
+  &__submit {
+    @include btn-primary;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
