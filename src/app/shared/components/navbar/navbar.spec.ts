@@ -1,3 +1,4 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, computed } from '@angular/core';
 import { provideRouter } from '@angular/router';
@@ -6,6 +7,9 @@ import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
 import type { CartItem } from '../../../core/services/cart.service';
 import type { Product } from '../../../core/models/product.model';
+
+@Component({ standalone: true, template: '' })
+class DummyCheckoutComponent {}
 
 const SAMPLE_PRODUCT: Product = {
   id: 'p1',
@@ -46,7 +50,7 @@ describe('Navbar', () => {
     await TestBed.configureTestingModule({
       imports: [NavbarComponent],
       providers: [
-        provideRouter([]),
+        provideRouter([{ path: 'checkout', component: DummyCheckoutComponent }]),
         { provide: AuthService, useClass: FakeAuthService },
         { provide: CartService, useClass: FakeCartService },
       ],
