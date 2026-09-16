@@ -1,9 +1,17 @@
 <section class="admin">
   <div class="admin__header">
-    <h1>Gestión de productos</h1>
-    <p>Alta, edición y borrado del catálogo</p>
+    <h1>Panel de administración</h1>
+    <p>Gestión de productos y pedidos</p>
   </div>
 
+  <div class="admin__tabs">
+    <button type="button" class="admin__tab" [class.admin__tab--active]="activeTab() === 'productos'"
+      (click)="activeTab.set('productos')">Productos</button>
+    <button type="button" class="admin__tab" [class.admin__tab--active]="activeTab() === 'pedidos'"
+      (click)="activeTab.set('pedidos')">Pedidos</button>
+  </div>
+
+  @if (activeTab() === 'productos') {
   @if (error()) {
   <p class="admin__error">{{ error() }}</p>
   }
@@ -90,4 +98,48 @@
       }
     </tbody>
   </table>
+  }
+
+  @if (activeTab() === 'pedidos') {
+  @if (orderError()) {
+  <p class="admin__error">{{ orderError() }}</p>
+  }
+
+  @if (orders().length === 0) {
+  <p class="admin__empty">Todavía no hay pedidos.</p>
+  } @else {
+  <table class="admin__table">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Cliente</th>
+        <th>Pedido</th>
+        <th>Total</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (order of orders(); track order.id) {
+      <tr>
+        <td>{{ order.createdAt | date:'d MMM y, HH:mm' }}</td>
+        <td>{{ order.pickupName }}<br />{{ order.pickupPhone }}</td>
+        <td>
+          @for (item of order.items; track item.productId) {
+          <div>{{ item.name }} × {{ item.quantity }}</div>
+          }
+        </td>
+        <td>{{ order.total | currency:'EUR' }}</td>
+        <td>
+          <select [value]="order.status" (change)="changeStatus(order, $any($event.target).value)">
+            @for (status of orderStatuses; track status) {
+            <option [value]="status">{{ status }}</option>
+            }
+          </select>
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+  }
+  }
 </section>

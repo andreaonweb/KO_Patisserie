@@ -1,8 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ProductService } from '../../core/services/product.service';
+import { OrderService } from '../../core/services/order.service';
 import { Product } from '../../core/models/product.model';
+import type { Order, OrderStatus } from '../../core/models/order.model';
 
 const EMOJI_OPTIONS: string[] = [
   '🍓', '🌸', '🍵', '🟢', '🍋', '🎂', '🥞', '🐟', '🍰', '🍙', '🧋', '🍮', '🥤',
@@ -21,13 +24,19 @@ const SAMPLE_PRODUCTS: Omit<Product, 'id'>[] = [
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [ReactiveFormsModule, CurrencyPipe],
+  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe],
   templateUrl: './admin.html',
   styleUrl: './admin.scss',
 })
 export class AdminComponent {
   private fb = inject(FormBuilder);
   productService = inject(ProductService);
+  orderService = inject(OrderService);
+
+  activeTab = signal<'productos' | 'pedidos'>('productos');
+  orders = toSignal(this.orderService.watchAll(), { initialValue: [] as Order[] });
+  orderError = signal('');
+  readonly orderStatuses: OrderStatus[] = ['pendiente', 'listo', 'entregado'];
 
   editingId = signal<string | null>(null);
   error = signal('');
@@ -100,6 +109,15 @@ export class AdminComponent {
       this.error.set('❌ ' + (e.message ?? 'Error al cargar productos de ejemplo'));
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  async changeStatus(order: Order, status: OrderStatus): Promise<void> {
+    this.orderError.set('');
+    try {
+      await this.orderService.updateStatus(order.id, status);
+    } catch (e: any) {
+      this.orderError.set('❌ ' + (e.message ?? 'Error al actualizar el pedido'));
     }
   }
 }

@@ -21,6 +21,34 @@
     }
   }
 
+  &__tabs {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  &__tab {
+    background: transparent;
+    border: 1px solid $border;
+    border-radius: $radius-xl;
+    padding: 0.5rem 1.25rem;
+    cursor: pointer;
+    font-weight: 600;
+    color: $text-muted;
+
+    &--active {
+      background: $primary;
+      color: $white;
+      border-color: $primary;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    color: $text-muted;
+  }
+
   &__error {
     background: #fdeceb;
     color: #c0392b;
