@@ -3,7 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
-import { LucideAngularModule, House, UtensilsCrossed, Heart, ShoppingBag, Settings } from 'lucide-angular';
+import { LucideAngularModule, House, UtensilsCrossed, Heart, ShoppingBag, Settings, ClipboardList } from 'lucide-angular';
 
 @Component({
   selector: 'app-navbar',
@@ -24,6 +24,7 @@ export class NavbarComponent {
   readonly Heart = Heart;
   readonly ShoppingBag = ShoppingBag;
   readonly Settings = Settings;
+  readonly ClipboardList = ClipboardList;
 
   toggleCart(): void {
     this.cartOpen.update(v => !v);

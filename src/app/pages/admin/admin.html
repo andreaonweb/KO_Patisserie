@@ -101,6 +101,10 @@
   }
 
   @if (activeTab() === 'pedidos') {
+  @if (ordersLoadError()) {
+  <p class="admin__error">{{ ordersLoadError() }}</p>
+  }
+
   @if (orderError()) {
   <p class="admin__error">{{ orderError() }}</p>
   }
@@ -132,7 +136,7 @@
         <td>
           <select [value]="order.status" (change)="changeStatus(order, $any($event.target).value)">
             @for (status of orderStatuses; track status) {
-            <option [value]="status">{{ status }}</option>
+            <option [value]="status" [selected]="status === order.status">{{ status }}</option>
             }
           </select>
         </td>

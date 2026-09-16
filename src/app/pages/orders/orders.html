@@ -4,6 +4,10 @@
     <p>Historial de tus compras en Shirayuki 🌸</p>
   </div>
 
+  @if (loadError()) {
+  <p class="orders__error">{{ loadError() }}</p>
+  }
+
   @if (orders().length === 0) {
   <p class="orders__empty">Todavía no hiciste ningún pedido.</p>
   } @else {

@@ -1,6 +1,8 @@
 <section class="confirmation">
   @if (loading()) {
   <p class="confirmation__loading">Cargando tu pedido…</p>
+  } @else if (error()) {
+  <p class="confirmation__not-found">{{ error() }}</p>
   } @else if (!order()) {
   <p class="confirmation__not-found">No encontramos ese pedido 🌸</p>
   } @else {

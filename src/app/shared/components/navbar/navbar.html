@@ -14,6 +14,9 @@
         <lucide-icon [name]="Heart" [size]="16" aria-hidden="true"></lucide-icon> Nosotras
       </a></li>
     @if (auth.isLoggedIn()) {
+    <li><a [routerLink]="'pedidos'" routerLinkActive="active">
+        <lucide-icon [name]="ClipboardList" [size]="16" aria-hidden="true"></lucide-icon> Mis pedidos
+      </a></li>
     <li><a [routerLink]="'admin'" routerLinkActive="active">
         <lucide-icon [name]="Settings" [size]="16" aria-hidden="true"></lucide-icon> Admin
       </a></li>

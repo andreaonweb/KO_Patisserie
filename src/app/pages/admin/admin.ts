@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { catchError, of } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
 import { OrderService } from '../../core/services/order.service';
 import { Product } from '../../core/models/product.model';
@@ -34,7 +35,16 @@ export class AdminComponent {
   orderService = inject(OrderService);
 
   activeTab = signal<'productos' | 'pedidos'>('productos');
-  orders = toSignal(this.orderService.watchAll(), { initialValue: [] as Order[] });
+  ordersLoadError = signal('');
+  orders = toSignal(
+    this.orderService.watchAll().pipe(
+      catchError(e => {
+        this.ordersLoadError.set('❌ ' + (e.message ?? 'Error al cargar los pedidos'));
+        return of([] as Order[]);
+      })
+    ),
+    { initialValue: [] as Order[] }
+  );
   orderError = signal('');
   readonly orderStatuses: OrderStatus[] = ['pendiente', 'listo', 'entregado'];
 
