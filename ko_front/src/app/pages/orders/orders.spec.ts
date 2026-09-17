@@ -21,7 +21,7 @@ const SAMPLE_ORDERS: Order[] = [
 ];
 
 class FakeAuthService {
-  currentUser = signal<{ uid: string } | undefined>({ uid: 'user-1' });
+  currentUser = signal<{ id: number } | undefined>({ id: 1 });
 }
 
 describe('OrdersComponent', () => {
@@ -50,7 +50,7 @@ describe('OrdersComponent', () => {
   });
 
   it('watches orders for the current user', () => {
-    expect(watchByUser).toHaveBeenCalledWith('user-1');
+    expect(watchByUser).toHaveBeenCalledWith('1');
     expect(component.orders()).toEqual(SAMPLE_ORDERS);
   });
 });

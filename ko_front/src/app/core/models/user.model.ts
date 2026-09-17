@@ -1,5 +1,5 @@
 export interface AppUser {
-  uid: string;
+  id: number;
   email: string;
-  displayName?: string;
+  role: 'admin' | 'customer';
 }
