@@ -78,3 +78,28 @@ def test_me_with_expired_token_returns_401(client, db_session) -> None:
     expired_token = jwt.encode(expired_payload, settings.jwt_secret, algorithm="HS256")
     response = client.get("/auth/me", headers={"Authorization": f"Bearer {expired_token}"})
     assert response.status_code == 401
+
+
+def test_register_with_too_short_password_returns_422(client) -> None:
+    response = client.post("/auth/register", json={"email": "ana@test.com", "password": "short"})
+    assert response.status_code == 422
+
+
+def test_register_with_too_long_password_returns_422(client) -> None:
+    response = client.post("/auth/register", json={"email": "ana@test.com", "password": "a" * 73})
+    assert response.status_code == 422
+
+
+def test_login_with_too_long_password_does_not_leak_whether_email_exists(client) -> None:
+    client.post("/auth/register", json={"email": "ana@test.com", "password": "secret123"})
+    known = client.post("/auth/login", json={"email": "ana@test.com", "password": "a" * 73})
+    unknown = client.post("/auth/login", json={"email": "nobody@test.com", "password": "a" * 73})
+    assert known.status_code == 422
+    assert unknown.status_code == 422
+
+
+def test_me_with_token_missing_sub_returns_401(client) -> None:
+    payload = {"role": "customer", "exp": datetime.now(timezone.utc) + timedelta(days=7)}
+    token = jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
+    response = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 401
