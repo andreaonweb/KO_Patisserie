@@ -42,7 +42,7 @@ export class CheckoutComponent implements OnInit {
     this.saving.set(true);
     this.error.set('');
     const items: OrderItem[] = this.cartItems().map(i => ({
-      productId: i.product.id,
+      productId: String(i.product.id),
       name: i.product.name,
       price: i.product.price,
       quantity: i.quantity,

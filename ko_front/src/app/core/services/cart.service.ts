@@ -45,7 +45,7 @@ export class CartService {
     });
   }
 
-  remove(id: string): void {
+  remove(id: number): void {
     this.items.update(list => {
       const existing = list.find(i => i.product.id === id);
       if (!existing) return list;
@@ -55,7 +55,7 @@ export class CartService {
     });
   }
 
-  removeAll(id: string): void {
+  removeAll(id: number): void {
     this.items.update(list => list.filter(i => i.product.id !== id));
   }
 

@@ -1,37 +1,72 @@
-import { Injectable, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { Firestore, collection, collectionData, doc, addDoc, updateDoc, deleteDoc } from '@angular/fire/firestore';
-import type { Observable } from 'rxjs';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { Product } from '../models/product.model';
 
-const COLLECTION = 'products';
+interface ProductApiResponse {
+  id: number;
+  name: string;
+  price: number;
+  description: string;
+  emoji: string;
+  category: Product['category'];
+  is_new: boolean;
+  created_at: string;
+}
+
+const BASE = `${environment.apiUrl}/products`;
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  private firestore = inject(Firestore);
-  private productsRef = collection(this.firestore, COLLECTION);
+  private http = inject(HttpClient);
 
-  products = toSignal(
-    collectionData(this.productsRef, { idField: 'id' }) as Observable<Product[]>,
-    { initialValue: [] as Product[] }
-  );
+  products = signal<Product[]>([]);
+
+  constructor() {
+    void this.load();
+  }
 
   async create(product: Omit<Product, 'id'>): Promise<void> {
-    await addDoc(this.productsRef, product);
+    await firstValueFrom(this.http.post<ProductApiResponse>(BASE, toApiBody(product)));
+    await this.load();
   }
 
-  async update(id: string, changes: Omit<Product, 'id'>): Promise<void> {
-    await updateDoc(doc(this.productsRef, id), changes);
+  async update(id: number, changes: Omit<Product, 'id'>): Promise<void> {
+    await firstValueFrom(this.http.put<ProductApiResponse>(`${BASE}/${id}`, toApiBody(changes)));
+    await this.load();
   }
 
-  async remove(id: string): Promise<void> {
-    await deleteDoc(doc(this.productsRef, id));
+  async remove(id: number): Promise<void> {
+    await firstValueFrom(this.http.delete<void>(`${BASE}/${id}`));
+    await this.load();
   }
 
-  async seedIfEmpty(products: Omit<Product, 'id'>[]): Promise<void> {
-    if (this.products().length > 0) return;
-    for (const product of products) {
-      await addDoc(this.productsRef, product);
-    }
+  private async load(): Promise<void> {
+    const rows = await firstValueFrom(this.http.get<ProductApiResponse[]>(BASE));
+    this.products.set(rows.map(fromApi));
   }
+}
+
+function fromApi(row: ProductApiResponse): Product {
+  return {
+    id: row.id,
+    name: row.name,
+    price: row.price,
+    description: row.description,
+    emoji: row.emoji,
+    category: row.category,
+    isNew: row.is_new,
+  };
+}
+
+function toApiBody(product: Omit<Product, 'id'>): Record<string, unknown> {
+  return {
+    name: product.name,
+    price: product.price,
+    description: product.description,
+    emoji: product.emoji,
+    category: product.category,
+    is_new: product.isNew ?? false,
+  };
 }

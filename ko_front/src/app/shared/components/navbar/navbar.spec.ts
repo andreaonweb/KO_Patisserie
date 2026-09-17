@@ -12,7 +12,7 @@ import type { Product } from '../../../core/models/product.model';
 class DummyCheckoutComponent {}
 
 const SAMPLE_PRODUCT: Product = {
-  id: 'p1',
+  id: 1,
   name: 'Mochi de Fresa',
   price: 3.5,
   description: 'Tierno mochi relleno de anko y fresas frescas.',

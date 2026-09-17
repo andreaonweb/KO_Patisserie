@@ -13,15 +13,6 @@ const EMOJI_OPTIONS: string[] = [
   '🍡', '🍪', '🍩', '🧁', '🍦', '🍨', '🍯', '🍬', '🍫', '🍭', '🥧', '🫖', '☕',
 ];
 
-const SAMPLE_PRODUCTS: Omit<Product, 'id'>[] = [
-  { name: 'Mochi de Fresa', price: 3.5, description: 'Tierno mochi relleno de anko y fresas frescas.', emoji: '🍓', category: 'mochi', isNew: true },
-  { name: 'Donut Sakura', price: 4.2, description: 'Glaseado rosa con pétalos de rosa comestibles.', emoji: '🌸', category: 'donut' },
-  { name: 'Tarta Matcha', price: 5.8, description: 'Bizcocho de matcha con nata ligera y judías rojas.', emoji: '🍵', category: 'cake', isNew: true },
-  { name: 'Mochi Matcha', price: 3.5, description: 'Clásico mochi con relleno de pasta de matcha.', emoji: '🟢', category: 'mochi' },
-  { name: 'Té de Yuzu', price: 3.0, description: 'Refrescante té caliente con cítrico yuzu japonés.', emoji: '🍋', category: 'drink' },
-  { name: 'Shortcake Sakura', price: 6.5, description: 'Tarta japonesa de nata con sakura salada.', emoji: '🎂', category: 'cake' },
-];
-
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -48,7 +39,7 @@ export class AdminComponent {
   orderError = signal('');
   readonly orderStatuses: OrderStatus[] = ['pendiente', 'listo', 'entregado'];
 
-  editingId = signal<string | null>(null);
+  editingId = signal<number | null>(null);
   error = signal('');
   saving = signal(false);
 
@@ -107,18 +98,6 @@ export class AdminComponent {
       if (this.editingId() === product.id) this.cancelEdit();
     } catch (e: any) {
       this.error.set('❌ ' + (e.message ?? 'Error al borrar el producto'));
-    }
-  }
-
-  async seed(): Promise<void> {
-    this.error.set('');
-    this.saving.set(true);
-    try {
-      await this.productService.seedIfEmpty(SAMPLE_PRODUCTS);
-    } catch (e: any) {
-      this.error.set('❌ ' + (e.message ?? 'Error al cargar productos de ejemplo'));
-    } finally {
-      this.saving.set(false);
     }
   }
 
