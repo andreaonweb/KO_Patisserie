@@ -11,7 +11,7 @@ def upgrade() -> None:
     op.create_table(
         "user",
         sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("email", sa.String(), nullable=False, unique=True),
+        sa.Column("email", sa.String(), nullable=False),
         sa.Column("hashed_password", sa.String(), nullable=False),
         sa.Column(
             "role",
@@ -19,9 +19,9 @@ def upgrade() -> None:
             nullable=False,
             server_default="customer",
         ),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.func.now()),
+        sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),
     )
-    op.create_index("ix_user_email", "user", ["email"])
+    op.create_index("ix_user_email", "user", ["email"], unique=True)
 
     op.create_table(
         "product",
@@ -36,7 +36,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("is_new", sa.Boolean(), nullable=False, server_default=sa.false()),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.func.now()),
+        sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),
     )
 
     op.create_table(
@@ -53,7 +53,7 @@ def upgrade() -> None:
             server_default="pendiente",
         ),
         sa.Column("total", sa.Float(), nullable=False),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.func.now()),
+        sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),
     )
 
     op.create_table(

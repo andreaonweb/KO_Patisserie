@@ -86,6 +86,7 @@ src/
 # Clonar el repositorio
 git clone https://github.com/andreaonweb/project_m1.git
 cd project_m1
+cd ko_front
 
 # Instalar dependencias
 npm install

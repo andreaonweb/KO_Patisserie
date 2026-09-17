@@ -1,8 +1,8 @@
 # Compiled output
 /ko_front/dist
-/tmp
-/out-tsc
-/bazel-out
+/ko_front/tmp
+/ko_front/out-tsc
+/ko_front/bazel-out
 
 # Node
 /ko_front/node_modules
@@ -30,11 +30,11 @@ ko_front/.vscode/*
 # Miscellaneous
 /ko_front/.angular/cache
 .sass-cache/
-/connect.lock
-/coverage
+/ko_front/connect.lock
+/ko_front/coverage
 /libpeerconnection.log
 testem.log
-/typings
+/ko_front/typings
 __screenshots__/
 
 # System files
