@@ -43,3 +43,6 @@ Thumbs.db
 
 # Claude Code local config
 /.claude/
+
+# Git worktrees (scratch, per-task implementation workspaces)
+/.worktrees/
