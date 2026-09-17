@@ -12,7 +12,6 @@ class FakeProductService {
   create = vi.fn().mockResolvedValue(undefined);
   update = vi.fn().mockResolvedValue(undefined);
   remove = vi.fn().mockResolvedValue(undefined);
-  seedIfEmpty = vi.fn().mockResolvedValue(undefined);
 }
 
 class FakeOrderService {
@@ -21,7 +20,7 @@ class FakeOrderService {
 }
 
 const SAMPLE_PRODUCT: Product = {
-  id: '1',
+  id: 1,
   name: 'Mochi de Fresa',
   price: 3.5,
   description: 'Tierno mochi relleno de anko y fresas frescas.',
@@ -109,12 +108,12 @@ describe('AdminComponent', () => {
   it('startEdit() patches the form and submit() calls productService.update', async () => {
     component.startEdit(SAMPLE_PRODUCT);
 
-    expect(component.editingId()).toBe('1');
+    expect(component.editingId()).toBe(1);
     expect(component.form.value.name).toBe('Mochi de Fresa');
 
     await component.submit();
 
-    expect(productService.update).toHaveBeenCalledWith('1', {
+    expect(productService.update).toHaveBeenCalledWith(1, {
       name: 'Mochi de Fresa',
       price: 3.5,
       description: 'Tierno mochi relleno de anko y fresas frescas.',
@@ -131,7 +130,7 @@ describe('AdminComponent', () => {
     await component.remove(SAMPLE_PRODUCT);
 
     expect(window.confirm).toHaveBeenCalledWith('¿Borrar "Mochi de Fresa"?');
-    expect(productService.remove).toHaveBeenCalledWith('1');
+    expect(productService.remove).toHaveBeenCalledWith(1);
   });
 
   it('remove() does nothing when the user cancels the confirmation', async () => {
@@ -147,7 +146,7 @@ describe('AdminComponent', () => {
     expect(component.form.value.isNew).toBe(true);
 
     const productWithoutIsNew: Product = {
-      id: '2',
+      id: 2,
       name: 'Donut Sakura',
       price: 4.2,
       description: 'Glaseado rosa con pétalos de rosa comestibles.',
@@ -157,23 +156,6 @@ describe('AdminComponent', () => {
     component.startEdit(productWithoutIsNew);
 
     expect(component.form.value.isNew).toBe(false);
-  });
-
-  it('seed() sets saving() while in flight and resets it to false afterwards', async () => {
-    let resolveSeed!: () => void;
-    productService.seedIfEmpty.mockReturnValue(
-      new Promise<void>((resolve) => {
-        resolveSeed = resolve;
-      }),
-    );
-
-    const seedPromise = component.seed();
-    expect(component.saving()).toBe(true);
-
-    resolveSeed();
-    await seedPromise;
-
-    expect(component.saving()).toBe(false);
   });
 
   it('defaults to the "productos" tab', () => {

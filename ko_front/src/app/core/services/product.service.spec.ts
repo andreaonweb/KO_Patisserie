@@ -1,92 +1,129 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
-import { Firestore } from '@angular/fire/firestore';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ProductService } from './product.service';
-import type { Product } from '../models/product.model';
+import { environment } from '../../../environments/environment';
 
-const mockCollection = vi.fn().mockReturnValue('products-collection');
-const mockDoc = vi.fn().mockReturnValue('product-doc-ref');
-const mockAddDoc = vi.fn().mockResolvedValue({ id: 'new-id' });
-const mockUpdateDoc = vi.fn().mockResolvedValue(undefined);
-const mockDeleteDoc = vi.fn().mockResolvedValue(undefined);
-const mockCollectionData = vi.fn().mockReturnValue(of([]));
-
-vi.mock('@angular/fire/firestore', () => ({
-  Firestore: class {},
-  collection: (...args: unknown[]) => mockCollection(...args),
-  doc: (...args: unknown[]) => mockDoc(...args),
-  collectionData: (...args: unknown[]) => mockCollectionData(...args),
-  addDoc: (...args: unknown[]) => mockAddDoc(...args),
-  updateDoc: (...args: unknown[]) => mockUpdateDoc(...args),
-  deleteDoc: (...args: unknown[]) => mockDeleteDoc(...args),
-}));
-
-const SAMPLE_PRODUCT: Omit<Product, 'id'> = {
+const API_PRODUCT = {
+  id: 1,
   name: 'Mochi de Fresa',
   price: 3.5,
   description: 'Tierno mochi relleno de anko y fresas frescas.',
   emoji: '🍓',
-  category: 'mochi',
+  category: 'mochi' as const,
+  is_new: false,
+  created_at: '2026-01-01T00:00:00',
 };
 
-function createService(initialProducts: Product[] = []): ProductService {
-  mockCollectionData.mockReturnValue(of(initialProducts));
-  TestBed.resetTestingModule();
+async function createService(initialRows: unknown[] = []): Promise<{ service: ProductService; httpMock: HttpTestingController }> {
   TestBed.configureTestingModule({
-    providers: [ProductService, { provide: Firestore, useValue: {} }],
+    providers: [provideHttpClient(), provideHttpClientTesting()],
   });
-  return TestBed.inject(ProductService);
+  const service = TestBed.inject(ProductService);
+  const httpMock = TestBed.inject(HttpTestingController);
+  httpMock.expectOne(`${environment.apiUrl}/products`).flush(initialRows);
+  await Promise.resolve();
+  return { service, httpMock };
 }
 
 describe('ProductService', () => {
-  beforeEach(() => {
-    mockCollection.mockClear();
-    mockDoc.mockClear();
-    mockAddDoc.mockClear();
-    mockUpdateDoc.mockClear();
-    mockDeleteDoc.mockClear();
+  afterEach(() => {
+    TestBed.inject(HttpTestingController).verify();
   });
 
-  it('should create', () => {
-    expect(createService()).toBeTruthy();
+  it('should create', async () => {
+    const { service } = await createService();
+    expect(service).toBeTruthy();
   });
 
-  it('exposes an empty products signal when the collection is empty', () => {
-    const service = createService();
+  it('exposes an empty products signal when the API returns none', async () => {
+    const { service } = await createService();
     expect(service.products()).toEqual([]);
   });
 
-  it('create() adds a document to the products collection', async () => {
-    const service = createService();
-    await service.create(SAMPLE_PRODUCT);
-    expect(mockAddDoc).toHaveBeenCalledWith('products-collection', SAMPLE_PRODUCT);
+  it('loads products from the API and maps is_new to isNew', async () => {
+    const { service } = await createService([API_PRODUCT]);
+    expect(service.products()).toEqual([
+      {
+        id: 1,
+        name: 'Mochi de Fresa',
+        price: 3.5,
+        description: 'Tierno mochi relleno de anko y fresas frescas.',
+        emoji: '🍓',
+        category: 'mochi',
+        isNew: false,
+      },
+    ]);
   });
 
-  it('update() writes changes to the product document', async () => {
-    const service = createService();
-    const changes = { ...SAMPLE_PRODUCT, name: 'Mochi Actualizado' };
-    await service.update('abc123', changes);
-    expect(mockDoc).toHaveBeenCalledWith('products-collection', 'abc123');
-    expect(mockUpdateDoc).toHaveBeenCalledWith('product-doc-ref', changes);
+  it('create() posts the mapped product and reloads the list', async () => {
+    const { service, httpMock } = await createService();
+    const createPromise = service.create({
+      name: 'Mochi de Fresa',
+      price: 3.5,
+      description: 'Tierno mochi relleno de anko y fresas frescas.',
+      emoji: '🍓',
+      category: 'mochi',
+      isNew: true,
+    });
+
+    const postReq = httpMock.expectOne(`${environment.apiUrl}/products`);
+    expect(postReq.request.method).toBe('POST');
+    expect(postReq.request.body).toEqual({
+      name: 'Mochi de Fresa',
+      price: 3.5,
+      description: 'Tierno mochi relleno de anko y fresas frescas.',
+      emoji: '🍓',
+      category: 'mochi',
+      is_new: true,
+    });
+    postReq.flush({ ...API_PRODUCT, is_new: true });
+    await Promise.resolve();
+
+    httpMock.expectOne(`${environment.apiUrl}/products`).flush([{ ...API_PRODUCT, is_new: true }]);
+    await createPromise;
+
+    expect(service.products()[0].isNew).toBe(true);
   });
 
-  it('remove() deletes the product document', async () => {
-    const service = createService();
-    await service.remove('abc123');
-    expect(mockDoc).toHaveBeenCalledWith('products-collection', 'abc123');
-    expect(mockDeleteDoc).toHaveBeenCalledWith('product-doc-ref');
+  it('update() puts the mapped changes to the product id and reloads the list', async () => {
+    const { service, httpMock } = await createService();
+    const updatePromise = service.update(1, {
+      name: 'Mochi Actualizado',
+      price: 4.0,
+      description: 'd',
+      emoji: '🍓',
+      category: 'mochi',
+      isNew: false,
+    });
+
+    const putReq = httpMock.expectOne(`${environment.apiUrl}/products/1`);
+    expect(putReq.request.method).toBe('PUT');
+    expect(putReq.request.body).toEqual({
+      name: 'Mochi Actualizado',
+      price: 4.0,
+      description: 'd',
+      emoji: '🍓',
+      category: 'mochi',
+      is_new: false,
+    });
+    putReq.flush({ ...API_PRODUCT, name: 'Mochi Actualizado', price: 4.0 });
+    await Promise.resolve();
+
+    httpMock.expectOne(`${environment.apiUrl}/products`).flush([]);
+    await updatePromise;
   });
 
-  it('seedIfEmpty() adds every sample product when the collection is empty', async () => {
-    const service = createService([]);
-    await service.seedIfEmpty([SAMPLE_PRODUCT]);
-    expect(mockAddDoc).toHaveBeenCalledTimes(1);
-    expect(mockAddDoc).toHaveBeenCalledWith('products-collection', SAMPLE_PRODUCT);
-  });
+  it('remove() deletes the product by id and reloads the list', async () => {
+    const { service, httpMock } = await createService();
+    const removePromise = service.remove(1);
 
-  it('seedIfEmpty() does nothing when products already exist', async () => {
-    const service = createService([{ id: '1', ...SAMPLE_PRODUCT }]);
-    await service.seedIfEmpty([SAMPLE_PRODUCT]);
-    expect(mockAddDoc).not.toHaveBeenCalled();
+    const deleteReq = httpMock.expectOne(`${environment.apiUrl}/products/1`);
+    expect(deleteReq.request.method).toBe('DELETE');
+    deleteReq.flush(null);
+    await Promise.resolve();
+
+    httpMock.expectOne(`${environment.apiUrl}/products`).flush([]);
+    await removePromise;
   });
 });

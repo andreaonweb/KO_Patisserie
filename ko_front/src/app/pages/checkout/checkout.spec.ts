@@ -9,7 +9,7 @@ import { OrderService } from '../../core/services/order.service';
 import type { Product } from '../../core/models/product.model';
 
 const SAMPLE_PRODUCT: Product = {
-  id: 'p1',
+  id: 1,
   name: 'Mochi de Fresa',
   price: 3.5,
   description: 'Tierno mochi relleno de anko y fresas frescas.',
@@ -93,7 +93,7 @@ describe('CheckoutComponent', () => {
 
     expect(orderService.create).toHaveBeenCalledWith({
       userId: '1',
-      items: [{ productId: 'p1', name: 'Mochi de Fresa', price: 3.5, quantity: 2 }],
+      items: [{ productId: '1', name: 'Mochi de Fresa', price: 3.5, quantity: 2 }],
       total: 7,
       pickupName: 'Ana',
       pickupPhone: '600111222',

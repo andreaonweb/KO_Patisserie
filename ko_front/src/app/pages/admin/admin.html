@@ -17,10 +17,7 @@
   }
 
   @if (productService.products().length === 0) {
-  <div class="admin__seed">
-    <p>No hay productos todavía.</p>
-    <button type="button" class="btn-primary" [disabled]="saving()" (click)="seed()">Cargar productos de ejemplo</button>
-  </div>
+  <p class="admin__seed">No hay productos todavía.</p>
   }
 
   <form class="admin__form" [formGroup]="form" (ngSubmit)="submit()">
