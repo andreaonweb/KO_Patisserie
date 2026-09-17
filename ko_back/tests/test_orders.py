@@ -99,3 +99,109 @@ def test_create_order_with_no_items_returns_422(client, customer_token) -> None:
         headers=_auth_header(customer_token),
     )
     assert response.status_code == 422
+
+
+def test_list_orders_as_admin_sees_all_users_orders(client, admin_token, customer_token, db_session) -> None:
+    product = _seed_product(db_session)
+    client.post(
+        "/orders",
+        json={
+            "items": [{"product_id": product.id, "quantity": 1}],
+            "pickup_name": "Ana",
+            "pickup_phone": "600111222",
+            "pickup_time": "Hoy 18:00",
+        },
+        headers=_auth_header(customer_token),
+    )
+    response = client.get("/orders", headers=_auth_header(admin_token))
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+
+def test_list_orders_as_customer_sees_only_own_orders(client, customer_token, db_session) -> None:
+    product = _seed_product(db_session)
+    client.post(
+        "/orders",
+        json={
+            "items": [{"product_id": product.id, "quantity": 1}],
+            "pickup_name": "Ana",
+            "pickup_phone": "600111222",
+            "pickup_time": "Hoy 18:00",
+        },
+        headers=_auth_header(customer_token),
+    )
+    other_response = client.post("/auth/register", json={"email": "otro@test.com", "password": "secret123"})
+    other_token = other_response.json()["access_token"]
+    client.post(
+        "/orders",
+        json={
+            "items": [{"product_id": product.id, "quantity": 1}],
+            "pickup_name": "Otro",
+            "pickup_phone": "600333444",
+            "pickup_time": "Hoy 19:00",
+        },
+        headers=_auth_header(other_token),
+    )
+    response = client.get("/orders", headers=_auth_header(customer_token))
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["pickup_name"] == "Ana"
+
+
+def test_get_order_as_owner_returns_200(client, customer_token, db_session) -> None:
+    product = _seed_product(db_session)
+    create_response = client.post(
+        "/orders",
+        json={
+            "items": [{"product_id": product.id, "quantity": 1}],
+            "pickup_name": "Ana",
+            "pickup_phone": "600111222",
+            "pickup_time": "Hoy 18:00",
+        },
+        headers=_auth_header(customer_token),
+    )
+    order_id = create_response.json()["id"]
+    response = client.get(f"/orders/{order_id}", headers=_auth_header(customer_token))
+    assert response.status_code == 200
+
+
+def test_get_order_as_admin_returns_200(client, admin_token, customer_token, db_session) -> None:
+    product = _seed_product(db_session)
+    create_response = client.post(
+        "/orders",
+        json={
+            "items": [{"product_id": product.id, "quantity": 1}],
+            "pickup_name": "Ana",
+            "pickup_phone": "600111222",
+            "pickup_time": "Hoy 18:00",
+        },
+        headers=_auth_header(customer_token),
+    )
+    order_id = create_response.json()["id"]
+    response = client.get(f"/orders/{order_id}", headers=_auth_header(admin_token))
+    assert response.status_code == 200
+
+
+def test_get_order_as_different_customer_returns_404(client, customer_token, db_session) -> None:
+    product = _seed_product(db_session)
+    create_response = client.post(
+        "/orders",
+        json={
+            "items": [{"product_id": product.id, "quantity": 1}],
+            "pickup_name": "Ana",
+            "pickup_phone": "600111222",
+            "pickup_time": "Hoy 18:00",
+        },
+        headers=_auth_header(customer_token),
+    )
+    order_id = create_response.json()["id"]
+    other_response = client.post("/auth/register", json={"email": "otro@test.com", "password": "secret123"})
+    other_token = other_response.json()["access_token"]
+    response = client.get(f"/orders/{order_id}", headers=_auth_header(other_token))
+    assert response.status_code == 404
+
+
+def test_get_order_missing_id_returns_404(client, customer_token) -> None:
+    response = client.get("/orders/999", headers=_auth_header(customer_token))
+    assert response.status_code == 404
