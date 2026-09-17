@@ -18,7 +18,7 @@ const SAMPLE_PRODUCT: Product = {
 };
 
 class FakeAuthService {
-  currentUser = signal<{ uid: string } | undefined>({ uid: 'user-1' });
+  currentUser = signal<{ id: number } | undefined>({ id: 1 });
 }
 
 class FakeCartService {
@@ -92,7 +92,7 @@ describe('CheckoutComponent', () => {
     await component.submit();
 
     expect(orderService.create).toHaveBeenCalledWith({
-      userId: 'user-1',
+      userId: '1',
       items: [{ productId: 'p1', name: 'Mochi de Fresa', price: 3.5, quantity: 2 }],
       total: 7,
       pickupName: 'Ana',

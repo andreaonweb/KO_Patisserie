@@ -20,7 +20,7 @@ export class OrdersComponent {
   loadError = signal('');
 
   orders = toSignal(
-    this.orderService.watchByUser(this.auth.currentUser()!.uid).pipe(
+    this.orderService.watchByUser(String(this.auth.currentUser()!.id)).pipe(
       catchError(e => {
         this.loadError.set('❌ ' + (e.message ?? 'Error al cargar tus pedidos'));
         return of([] as Order[]);

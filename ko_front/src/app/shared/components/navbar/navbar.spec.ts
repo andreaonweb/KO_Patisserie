@@ -21,7 +21,7 @@ const SAMPLE_PRODUCT: Product = {
 };
 
 class FakeAuthService {
-  currentUser = signal<{ uid: string } | undefined>({ uid: 'user-1' });
+  currentUser = signal<{ id: number; role: string } | undefined>({ id: 1, role: 'customer' });
   isLoggedIn = computed(() => !!this.currentUser());
   logout = vi.fn();
 }

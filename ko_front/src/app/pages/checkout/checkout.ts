@@ -49,7 +49,7 @@ export class CheckoutComponent implements OnInit {
     }));
     try {
       const orderId = await this.orderService.create({
-        userId: this.auth.currentUser()!.uid,
+        userId: String(this.auth.currentUser()!.id),
         items,
         total: this.cart.total(),
         ...this.form.getRawValue(),
