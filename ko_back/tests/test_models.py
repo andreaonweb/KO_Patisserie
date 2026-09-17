@@ -1,3 +1,5 @@
+from sqlalchemy import text
+
 from app.models import Order, OrderItem, OrderStatus, Product, ProductCategory, User, UserRole
 
 
@@ -43,3 +45,39 @@ def test_create_order_with_items(db_session) -> None:
     assert order.status == OrderStatus.PENDIENTE
     assert len(order.items) == 1
     assert order.items[0].order_id == order.id
+
+
+def test_enum_values_persisted_lowercase(db_session) -> None:
+    user = User(email="test@test.com", hashed_password="hashed", role=UserRole.CUSTOMER)
+    db_session.add(user)
+    db_session.commit()
+
+    product = Product(
+        name="Test Product",
+        price=5.0,
+        description="Test",
+        emoji="🍰",
+        category=ProductCategory.CAKE,
+    )
+    db_session.add(product)
+    db_session.commit()
+
+    order = Order(
+        user_id=user.id,
+        pickup_name="Test",
+        pickup_phone="123456",
+        pickup_time="Today",
+        status=OrderStatus.LISTO,
+        total=5.0,
+    )
+    db_session.add(order)
+    db_session.commit()
+
+    user_role_raw = db_session.execute(text("SELECT role FROM \"user\" WHERE id = :id"), {"id": user.id}).scalar()
+    assert user_role_raw == "customer"
+
+    product_category_raw = db_session.execute(text("SELECT category FROM product WHERE id = :id"), {"id": product.id}).scalar()
+    assert product_category_raw == "cake"
+
+    order_status_raw = db_session.execute(text("SELECT status FROM \"order\" WHERE id = :id"), {"id": order.id}).scalar()
+    assert order_status_raw == "listo"

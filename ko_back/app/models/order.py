@@ -22,7 +22,7 @@ class Order(Base):
     pickup_name: Mapped[str] = mapped_column(String)
     pickup_phone: Mapped[str] = mapped_column(String)
     pickup_time: Mapped[str] = mapped_column(String)
-    status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), default=OrderStatus.PENDIENTE)
+    status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus, values_callable=lambda e: [m.value for m in e]), default=OrderStatus.PENDIENTE)
     total: Mapped[float] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
