@@ -22,6 +22,18 @@
 - No comments in code. Fully type-annotated. No service/repository layer — three routes don't justify one yet.
 - All commands below run from inside `ko_back/`.
 
+## Execution Workflow
+
+Each code task (1, 2, 3, 4, 5 — Task 6 is verification-only, no branch) gets
+its own branch off the current tip of `dev`: `feat/backend-auth-<slug>`
+(`jwt-settings`, `security-helpers`, `register-login`, `me-endpoint`,
+`seed-admin`). Implement + task-review that task on its branch; once the
+review is clean (or findings are parked with a ruling), merge it into `dev`
+and delete the branch, then branch the next task from the updated `dev`.
+After Task 5 merges, the final review compares `dev` before this plan
+started (`6735fc3`) against `dev`'s tip, instead of reviewing one long-lived
+feature branch.
+
 ---
 
 ### Task 1: Auth dependencies + JWT setting

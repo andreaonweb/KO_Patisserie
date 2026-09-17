@@ -111,8 +111,12 @@ hand and confirm the JWT round-trips.
 
 ## Branch / workflow
 
-Branched from `dev` as `feat/backend-auth`, merged back into `dev` when
-done — same pattern as sub-project 1's `chore/monorepo-setup`.
+One branch per implementation task, each cut from the current tip of
+`dev` (`feat/backend-auth-<slug>`), merged into `dev` as soon as that
+task's review is clean, branch deleted, next task branches from the
+updated `dev` — incremental integration rather than one long-lived
+branch for the whole sub-project. See the plan's Execution Workflow
+section for the exact sequence.
 
 ## Code style
 
