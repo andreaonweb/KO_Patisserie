@@ -9,6 +9,8 @@ dependencies = [
     "alembic>=1.13",
     "psycopg[binary]>=3.2",
     "pydantic-settings>=2.6",
+    "bcrypt>=5.0.0",
+    "pyjwt>=2.14.0",
 ]
 
 [dependency-groups]
