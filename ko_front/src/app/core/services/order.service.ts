@@ -1,51 +1,87 @@
 import { Injectable, inject } from '@angular/core';
-import {
-  Firestore,
-  collection,
-  doc,
-  addDoc,
-  updateDoc,
-  getDoc,
-  query,
-  where,
-  orderBy,
-  collectionData,
-} from '@angular/fire/firestore';
-import type { Observable } from 'rxjs';
-import type { Order, OrderStatus } from '../models/order.model';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom, map, Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import type { CreateOrderInput, Order, OrderItem, OrderStatus } from '../models/order.model';
 
-const COLLECTION = 'orders';
+interface OrderItemApiResponse {
+  product_id: number;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+interface OrderApiResponse {
+  id: number;
+  user_id: number;
+  items: OrderItemApiResponse[];
+  total: number;
+  pickup_name: string;
+  pickup_phone: string;
+  pickup_time: string;
+  status: OrderStatus;
+  created_at: string;
+}
+
+const BASE = `${environment.apiUrl}/orders`;
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
-  private firestore = inject(Firestore);
-  private ordersRef = collection(this.firestore, COLLECTION);
+  private http = inject(HttpClient);
 
-  async create(order: Omit<Order, 'id' | 'status' | 'createdAt'>): Promise<string> {
-    const docRef = await addDoc(this.ordersRef, {
-      ...order,
-      status: 'pendiente' as OrderStatus,
-      createdAt: Date.now(),
-    });
-    return docRef.id;
+  async create(order: CreateOrderInput): Promise<number> {
+    const response = await firstValueFrom(
+      this.http.post<OrderApiResponse>(BASE, {
+        items: order.items.map(i => ({ product_id: i.productId, quantity: i.quantity })),
+        pickup_name: order.pickupName,
+        pickup_phone: order.pickupPhone,
+        pickup_time: order.pickupTime,
+      })
+    );
+    return response.id;
   }
 
-  watchByUser(userId: string): Observable<Order[]> {
-    const q = query(this.ordersRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
-    return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+  getMine(): Observable<Order[]> {
+    return this.http.get<OrderApiResponse[]>(BASE).pipe(map(rows => rows.map(fromApi)));
   }
 
-  watchAll(): Observable<Order[]> {
-    const q = query(this.ordersRef, orderBy('createdAt', 'desc'));
-    return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+  getAll(): Observable<Order[]> {
+    return this.http.get<OrderApiResponse[]>(BASE).pipe(map(rows => rows.map(fromApi)));
   }
 
-  async getById(id: string): Promise<Order | undefined> {
-    const snap = await getDoc(doc(this.ordersRef, id));
-    return snap.exists() ? ({ id: snap.id, ...snap.data() } as Order) : undefined;
+  async getById(id: number): Promise<Order | undefined> {
+    try {
+      const row = await firstValueFrom(this.http.get<OrderApiResponse>(`${BASE}/${id}`));
+      return fromApi(row);
+    } catch {
+      return undefined;
+    }
   }
 
-  async updateStatus(id: string, status: OrderStatus): Promise<void> {
-    await updateDoc(doc(this.ordersRef, id), { status });
+  async updateStatus(id: number, status: OrderStatus): Promise<void> {
+    await firstValueFrom(this.http.patch<OrderApiResponse>(`${BASE}/${id}/status`, { status }));
   }
+}
+
+function fromApi(row: OrderApiResponse): Order {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    items: row.items.map(fromItemApi),
+    total: row.total,
+    pickupName: row.pickup_name,
+    pickupPhone: row.pickup_phone,
+    pickupTime: row.pickup_time,
+    status: row.status,
+    createdAt: Date.parse(row.created_at),
+  };
+}
+
+function fromItemApi(item: OrderItemApiResponse): OrderItem {
+  return {
+    productId: item.product_id,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+  };
 }

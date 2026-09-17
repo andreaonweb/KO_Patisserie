@@ -28,7 +28,7 @@ export class AdminComponent {
   activeTab = signal<'productos' | 'pedidos'>('productos');
   ordersLoadError = signal('');
   orders = toSignal(
-    this.orderService.watchAll().pipe(
+    this.orderService.getAll().pipe(
       catchError(e => {
         this.ordersLoadError.set('❌ ' + (e.message ?? 'Error al cargar los pedidos'));
         return of([] as Order[]);

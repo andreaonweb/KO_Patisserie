@@ -5,9 +5,9 @@ import { OrderService } from '../../core/services/order.service';
 import type { Order } from '../../core/models/order.model';
 
 const SAMPLE_ORDER: Order = {
-  id: 'order-1',
-  userId: 'user-1',
-  items: [{ productId: 'p1', name: 'Mochi de Fresa', price: 3.5, quantity: 2 }],
+  id: 1,
+  userId: 2,
+  items: [{ productId: 1, name: 'Mochi de Fresa', price: 3.5, quantity: 2 }],
   total: 7,
   pickupName: 'Ana',
   pickupPhone: '600111222',
@@ -40,26 +40,26 @@ describe('ConfirmationComponent', () => {
   }
 
   it('should create', async () => {
-    await setup('order-1', SAMPLE_ORDER);
+    await setup('1', SAMPLE_ORDER);
     expect(component).toBeTruthy();
   });
 
   it('starts in a loading state with no order', async () => {
-    await setup('order-1', SAMPLE_ORDER);
+    await setup('1', SAMPLE_ORDER);
     expect(component.loading()).toBe(true);
     expect(component.order()).toBeUndefined();
   });
 
   it('loads the order by the route id and stops loading', async () => {
-    await setup('order-1', SAMPLE_ORDER);
+    await setup('1', SAMPLE_ORDER);
     await component.ngOnInit();
-    expect(getById).toHaveBeenCalledWith('order-1');
+    expect(getById).toHaveBeenCalledWith(1);
     expect(component.order()).toEqual(SAMPLE_ORDER);
     expect(component.loading()).toBe(false);
   });
 
   it('leaves order() undefined when no order matches the id', async () => {
-    await setup('missing', undefined);
+    await setup('999', undefined);
     await component.ngOnInit();
     expect(component.order()).toBeUndefined();
     expect(component.loading()).toBe(false);

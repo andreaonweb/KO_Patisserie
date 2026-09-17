@@ -2,10 +2,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
-import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
 import { OrderService } from '../../core/services/order.service';
-import type { OrderItem } from '../../core/models/order.model';
 
 @Component({
   selector: 'app-checkout',
@@ -17,7 +15,6 @@ import type { OrderItem } from '../../core/models/order.model';
 export class CheckoutComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private auth = inject(AuthService);
   private orderService = inject(OrderService);
   cart = inject(CartService);
 
@@ -41,17 +38,13 @@ export class CheckoutComponent implements OnInit {
     if (this.form.invalid) return;
     this.saving.set(true);
     this.error.set('');
-    const items: OrderItem[] = this.cartItems().map(i => ({
-      productId: String(i.product.id),
-      name: i.product.name,
-      price: i.product.price,
+    const items = this.cartItems().map(i => ({
+      productId: i.product.id,
       quantity: i.quantity,
     }));
     try {
       const orderId = await this.orderService.create({
-        userId: String(this.auth.currentUser()!.id),
         items,
-        total: this.cart.total(),
         ...this.form.getRawValue(),
       });
       this.cart.clear();
