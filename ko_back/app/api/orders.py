@@ -62,7 +62,7 @@ def create_order(
 def list_orders(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ) -> list[OrderResponse]:
-    query = db.query(Order).order_by(Order.created_at.desc())
+    query = db.query(Order).order_by(Order.created_at.desc(), Order.id.desc())
     if current_user.role != UserRole.ADMIN:
         query = query.filter(Order.user_id == current_user.id)
     return [_to_response(o) for o in query.all()]

@@ -270,3 +270,48 @@ def test_update_order_status_with_invalid_value_returns_422(
         f"/orders/{order_id}/status", json={"status": "invalido"}, headers=_auth_header(admin_token)
     )
     assert response.status_code == 422
+
+
+def test_list_orders_returns_newest_first(client, customer_token, db_session) -> None:
+    product = _seed_product(db_session)
+    order_ids = []
+    for pickup_name in ["First", "Second", "Third"]:
+        response = client.post(
+            "/orders",
+            json={
+                "items": [{"product_id": product.id, "quantity": 1}],
+                "pickup_name": pickup_name,
+                "pickup_phone": "600111222",
+                "pickup_time": "Hoy 18:00",
+            },
+            headers=_auth_header(customer_token),
+        )
+        order_ids.append(response.json()["id"])
+    response = client.get("/orders", headers=_auth_header(customer_token))
+    assert response.status_code == 200
+    returned_ids = [order["id"] for order in response.json()]
+    assert returned_ids == sorted(order_ids, reverse=True)
+
+
+def test_deleting_product_preserves_existing_order_snapshot(
+    client, admin_token, customer_token, db_session
+) -> None:
+    product = _seed_product(db_session)
+    create_response = client.post(
+        "/orders",
+        json={
+            "items": [{"product_id": product.id, "quantity": 1}],
+            "pickup_name": "Ana",
+            "pickup_phone": "600111222",
+            "pickup_time": "Hoy 18:00",
+        },
+        headers=_auth_header(customer_token),
+    )
+    order_id = create_response.json()["id"]
+    delete_response = client.delete(f"/products/{product.id}", headers=_auth_header(admin_token))
+    assert delete_response.status_code == 204
+    order_response = client.get(f"/orders/{order_id}", headers=_auth_header(customer_token))
+    assert order_response.status_code == 200
+    body = order_response.json()
+    assert body["items"][0]["name"] == "Mochi"
+    assert body["items"][0]["price"] == 3.5
