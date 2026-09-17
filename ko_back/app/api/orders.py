@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, require_admin
 from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.models.user import User, UserRole
-from app.schemas.order import OrderCreate, OrderItemResponse, OrderResponse
+from app.schemas.order import OrderCreate, OrderItemResponse, OrderResponse, OrderStatusUpdate
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -75,4 +75,20 @@ def get_order(
     order = db.get(Order, order_id)
     if order is None or (order.user_id != current_user.id and current_user.role != UserRole.ADMIN):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado")
+    return _to_response(order)
+
+
+@router.patch("/{order_id}/status", response_model=OrderResponse)
+def update_order_status(
+    order_id: int,
+    body: OrderStatusUpdate,
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_admin),
+) -> OrderResponse:
+    order = db.get(Order, order_id)
+    if order is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado")
+    order.status = body.status
+    db.commit()
+    db.refresh(order)
     return _to_response(order)
