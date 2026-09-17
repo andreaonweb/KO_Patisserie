@@ -5,7 +5,7 @@ from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.order import Order, OrderItem
 from app.models.product import Product
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.order import OrderCreate, OrderItemResponse, OrderResponse
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -55,4 +55,24 @@ def create_order(
     db.add(order)
     db.commit()
     db.refresh(order)
+    return _to_response(order)
+
+
+@router.get("", response_model=list[OrderResponse])
+def list_orders(
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+) -> list[OrderResponse]:
+    query = db.query(Order).order_by(Order.created_at.desc())
+    if current_user.role != UserRole.ADMIN:
+        query = query.filter(Order.user_id == current_user.id)
+    return [_to_response(o) for o in query.all()]
+
+
+@router.get("/{order_id}", response_model=OrderResponse)
+def get_order(
+    order_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+) -> OrderResponse:
+    order = db.get(Order, order_id)
+    if order is None or (order.user_id != current_user.id and current_user.role != UserRole.ADMIN):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado")
     return _to_response(order)
