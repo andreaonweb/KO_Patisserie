@@ -11,7 +11,7 @@ def test_settings_reads_database_url_from_env(monkeypatch) -> None:
 
 
 def test_settings_default_jwt_secret() -> None:
-    assert Settings().jwt_secret == "dev-secret-change-in-production"
+    assert Settings().jwt_secret == "dev-secret-change-in-production-please"
 
 
 def test_settings_reads_jwt_secret_from_env(monkeypatch) -> None:
