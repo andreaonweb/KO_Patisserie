@@ -205,3 +205,68 @@ def test_get_order_as_different_customer_returns_404(client, customer_token, db_
 def test_get_order_missing_id_returns_404(client, customer_token) -> None:
     response = client.get("/orders/999", headers=_auth_header(customer_token))
     assert response.status_code == 404
+
+
+def test_update_order_status_as_admin_returns_200(client, admin_token, customer_token, db_session) -> None:
+    product = _seed_product(db_session)
+    create_response = client.post(
+        "/orders",
+        json={
+            "items": [{"product_id": product.id, "quantity": 1}],
+            "pickup_name": "Ana",
+            "pickup_phone": "600111222",
+            "pickup_time": "Hoy 18:00",
+        },
+        headers=_auth_header(customer_token),
+    )
+    order_id = create_response.json()["id"]
+    response = client.patch(
+        f"/orders/{order_id}/status", json={"status": "listo"}, headers=_auth_header(admin_token)
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "listo"
+
+
+def test_update_order_status_as_customer_returns_403(client, customer_token, db_session) -> None:
+    product = _seed_product(db_session)
+    create_response = client.post(
+        "/orders",
+        json={
+            "items": [{"product_id": product.id, "quantity": 1}],
+            "pickup_name": "Ana",
+            "pickup_phone": "600111222",
+            "pickup_time": "Hoy 18:00",
+        },
+        headers=_auth_header(customer_token),
+    )
+    order_id = create_response.json()["id"]
+    response = client.patch(
+        f"/orders/{order_id}/status", json={"status": "listo"}, headers=_auth_header(customer_token)
+    )
+    assert response.status_code == 403
+
+
+def test_update_order_status_missing_id_returns_404(client, admin_token) -> None:
+    response = client.patch("/orders/999/status", json={"status": "listo"}, headers=_auth_header(admin_token))
+    assert response.status_code == 404
+
+
+def test_update_order_status_with_invalid_value_returns_422(
+    client, admin_token, customer_token, db_session
+) -> None:
+    product = _seed_product(db_session)
+    create_response = client.post(
+        "/orders",
+        json={
+            "items": [{"product_id": product.id, "quantity": 1}],
+            "pickup_name": "Ana",
+            "pickup_phone": "600111222",
+            "pickup_time": "Hoy 18:00",
+        },
+        headers=_auth_header(customer_token),
+    )
+    order_id = create_response.json()["id"]
+    response = client.patch(
+        f"/orders/{order_id}/status", json={"status": "invalido"}, headers=_auth_header(admin_token)
+    )
+    assert response.status_code == 422
