@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { CheckoutComponent } from './checkout';
-import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
 import type { CartItem } from '../../core/services/cart.service';
 import { OrderService } from '../../core/services/order.service';
@@ -17,10 +16,6 @@ const SAMPLE_PRODUCT: Product = {
   category: 'mochi',
 };
 
-class FakeAuthService {
-  currentUser = signal<{ id: number } | undefined>({ id: 1 });
-}
-
 class FakeCartService {
   items = signal<CartItem[]>([{ product: SAMPLE_PRODUCT, quantity: 2 }]);
   itemCount = computed(() => this.items().reduce((sum, i) => sum + i.quantity, 0));
@@ -32,7 +27,7 @@ class FakeCartService {
 }
 
 class FakeOrderService {
-  create = vi.fn().mockResolvedValue('order-1');
+  create = vi.fn().mockResolvedValue(1);
 }
 
 describe('CheckoutComponent', () => {
@@ -48,7 +43,6 @@ describe('CheckoutComponent', () => {
     await TestBed.configureTestingModule({
       imports: [CheckoutComponent],
       providers: [
-        { provide: AuthService, useClass: FakeAuthService },
         { provide: CartService, useClass: FakeCartService },
         { provide: OrderService, useClass: FakeOrderService },
         { provide: Router, useValue: router },
@@ -92,15 +86,13 @@ describe('CheckoutComponent', () => {
     await component.submit();
 
     expect(orderService.create).toHaveBeenCalledWith({
-      userId: '1',
-      items: [{ productId: '1', name: 'Mochi de Fresa', price: 3.5, quantity: 2 }],
-      total: 7,
+      items: [{ productId: 1, quantity: 2 }],
       pickupName: 'Ana',
       pickupPhone: '600111222',
       pickupTime: 'Hoy 18:00',
     });
     expect(cart.clear).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/checkout/confirmacion', 'order-1']);
+    expect(router.navigate).toHaveBeenCalledWith(['/checkout/confirmacion', 1]);
   });
 
   it('submit() shows an error and does not clear the cart when the order fails to save', async () => {

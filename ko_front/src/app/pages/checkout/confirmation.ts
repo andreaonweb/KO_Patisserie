@@ -20,7 +20,7 @@ export class ConfirmationComponent implements OnInit {
   error = signal('');
 
   async ngOnInit(): Promise<void> {
-    const id = this.route.snapshot.paramMap.get('id')!;
+    const id = Number(this.route.snapshot.paramMap.get('id'));
     try {
       this.order.set(await this.orderService.getById(id));
     } catch (e: any) {

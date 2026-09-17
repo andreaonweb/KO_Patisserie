@@ -15,7 +15,7 @@ class FakeProductService {
 }
 
 class FakeOrderService {
-  watchAll = vi.fn().mockReturnValue(of([]));
+  getAll = vi.fn().mockReturnValue(of([]));
   updateStatus = vi.fn().mockResolvedValue(undefined);
 }
 
@@ -29,9 +29,9 @@ const SAMPLE_PRODUCT: Product = {
 };
 
 const SAMPLE_ORDER: Order = {
-  id: 'order-1',
-  userId: 'user-1',
-  items: [{ productId: '1', name: 'Mochi de Fresa', price: 3.5, quantity: 2 }],
+  id: 1,
+  userId: 2,
+  items: [{ productId: 1, name: 'Mochi de Fresa', price: 3.5, quantity: 2 }],
   total: 7,
   pickupName: 'Ana',
   pickupPhone: '600111222',
@@ -162,13 +162,13 @@ describe('AdminComponent', () => {
     expect(component.activeTab()).toBe('productos');
   });
 
-  it('exposes orders from OrderService.watchAll()', () => {
+  it('exposes orders from OrderService.getAll()', () => {
     expect(component.orders()).toEqual([]);
   });
 
   it('changeStatus() calls orderService.updateStatus with the new status', async () => {
     await component.changeStatus(SAMPLE_ORDER, 'listo' as OrderStatus);
-    expect(orderService.updateStatus).toHaveBeenCalledWith('order-1', 'listo');
+    expect(orderService.updateStatus).toHaveBeenCalledWith(1, 'listo');
   });
 
   it('changeStatus() surfaces an error when the update fails', async () => {
