@@ -217,4 +217,35 @@ describe('Navbar', () => {
       Object.defineProperty(window, 'innerWidth', { value: 1024, configurable: true });
     });
   });
+
+  describe('cart visibility by role', () => {
+    const el = (selector: string) => fixture.nativeElement.querySelector(selector) as HTMLElement | null;
+    const setUser = (user: { id: number; role: string } | undefined) => {
+      const auth = TestBed.inject(AuthService) as unknown as { currentUser: { set(v: unknown): void } };
+      auth.currentUser.set(user);
+      fixture.detectChanges();
+    };
+
+    it('shows the cart button to customers', () => {
+      expect(el('.navbar__cart-btn')).not.toBeNull();
+    });
+
+    it('shows the cart button to visitors who are not logged in', () => {
+      setUser(undefined);
+      expect(el('.navbar__cart-btn')).not.toBeNull();
+    });
+
+    it('hides the cart button, its announcements and the cart panel for an admin', () => {
+      component.cartOpen.set(true);
+      fixture.detectChanges();
+      expect(el('.cart-panel')).not.toBeNull();
+
+      setUser({ id: 9, role: 'admin' });
+
+      expect(el('.navbar__cart-btn')).toBeNull();
+      expect(el('.cart-panel')).toBeNull();
+      expect(el('[role="status"]')).toBeNull();
+      expect(el('.navbar__auth')).not.toBeNull();
+    });
+  });
 });

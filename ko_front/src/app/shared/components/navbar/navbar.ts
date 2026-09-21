@@ -61,6 +61,9 @@ export class NavbarComponent {
     ];
   });
 
+  /** El administrador no hace pedidos: para él el carrito no tiene sentido. */
+  showCart = computed(() => this.auth.currentUser()?.role !== 'admin');
+
   itemsLabel = computed(() => {
     const n = this.cart.itemCount();
     return `${n} ${n === 1 ? 'artículo' : 'artículos'}`;
