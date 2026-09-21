@@ -9,6 +9,13 @@
         [attr.aria-selected]="activeTab() === 'productos'" (click)="activeTab.set('productos')">Productos</button>
       <button type="button" role="tab" class="admin__tab" [class.admin__tab--active]="activeTab() === 'pedidos'"
         [attr.aria-selected]="activeTab() === 'pedidos'" (click)="activeTab.set('pedidos')">Pedidos</button>
+      <button type="button" role="tab" class="admin__tab" [class.admin__tab--active]="activeTab() === 'chat'"
+        [attr.aria-selected]="activeTab() === 'chat'" (click)="activeTab.set('chat')">
+        Chat
+        @if (chat.adminUnreadTotal() > 0) {
+        <span class="admin__tab-badge">{{ chat.adminUnreadTotal() }}</span>
+        }
+      </button>
     </div>
   </div>
 
@@ -207,5 +214,9 @@
   </nav>
   }
   }
+  }
+
+  @if (activeTab() === 'chat') {
+  <app-admin-chat />
   }
 </section>

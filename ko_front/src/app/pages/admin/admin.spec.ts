@@ -4,6 +4,7 @@ import { of, throwError } from 'rxjs';
 import { AdminComponent } from './admin';
 import { ProductService } from '../../core/services/product.service';
 import { OrderService } from '../../core/services/order.service';
+import { ChatService } from '../../core/services/chat.service';
 import type { Product } from '../../core/models/product.model';
 import type { Order, OrderStatus } from '../../core/models/order.model';
 
@@ -18,6 +19,19 @@ class FakeProductService {
 class FakeOrderService {
   getAll = vi.fn().mockReturnValue(of([]));
   updateStatus = vi.fn().mockResolvedValue(undefined);
+}
+
+class FakeChatService {
+  adminUnreadTotal = signal(0);
+  // Lo que usa el componente hijo `app-admin-chat` cuando se abre la pestaña:
+  threads = signal([]);
+  activeCustomerId = signal<number | null>(null);
+  activeMessages = signal([]);
+  canSend = signal(true);
+  loadError = signal('');
+  openThread = vi.fn();
+  closeThread = vi.fn();
+  sendTo = vi.fn();
 }
 
 const SAMPLE_PRODUCT: Product = {
@@ -53,6 +67,7 @@ describe('AdminComponent', () => {
       providers: [
         { provide: ProductService, useClass: FakeProductService },
         { provide: OrderService, useClass: FakeOrderService },
+        { provide: ChatService, useClass: FakeChatService },
       ],
     }).compileComponents();
 
@@ -65,6 +80,21 @@ describe('AdminComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows the Chat tab with the unread total', () => {
+    const chat = TestBed.inject(ChatService) as unknown as FakeChatService;
+    chat.adminUnreadTotal.set(3);
+    fixture.detectChanges();
+    const tabs = Array.from(fixture.nativeElement.querySelectorAll('.admin__tab')) as HTMLElement[];
+    const chatTab = tabs.find(t => t.textContent?.includes('Chat'))!;
+    expect(chatTab.querySelector('.admin__tab-badge')?.textContent?.trim()).toBe('3');
+  });
+
+  it('switches to the chat panel', () => {
+    component.activeTab.set('chat');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-admin-chat')).not.toBeNull();
   });
 
   it('form is invalid when required fields are empty', () => {
@@ -290,6 +320,7 @@ describe('AdminComponent', () => {
         providers: [
           { provide: ProductService, useClass: FakeProductService },
           { provide: OrderService, useValue: orderService },
+          { provide: ChatService, useClass: FakeChatService },
         ],
       });
       return TestBed.createComponent(AdminComponent).componentInstance;

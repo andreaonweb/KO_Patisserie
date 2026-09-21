@@ -8,6 +8,8 @@ import { formatPickupTime } from '../../core/utils/pickup-slots';
 import { pollWhileVisible } from '../../core/utils/poll';
 import { Product } from '../../core/models/product.model';
 import { ProductIconComponent } from '../../shared/components/product-icon/product-icon';
+import { ChatService } from '../../core/services/chat.service';
+import { AdminChatComponent } from './admin-chat/admin-chat';
 import type { Order, OrderStatus } from '../../core/models/order.model';
 
 interface ProductFilters {
@@ -30,7 +32,7 @@ const normalize = (v: string): string =>
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, ProductIconComponent],
+  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, ProductIconComponent, AdminChatComponent],
   templateUrl: './admin.html',
   styleUrl: './admin.scss',
 })
@@ -38,8 +40,9 @@ export class AdminComponent {
   private fb = inject(FormBuilder);
   productService = inject(ProductService);
   orderService = inject(OrderService);
+  chat = inject(ChatService);
 
-  activeTab = signal<'productos' | 'pedidos'>('productos');
+  activeTab = signal<'productos' | 'pedidos' | 'chat'>('productos');
   ordersLoadError = signal('');
   orders = signal<Order[]>([]);
   orderError = signal('');

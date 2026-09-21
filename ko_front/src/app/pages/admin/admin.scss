@@ -381,3 +381,18 @@
   font-weight: 500;
   color: $green-dark;
 }
+
+.admin__tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 8px;
+  padding: 0 5px;
+  border-radius: $radius-pill;
+  background: $rose;
+  color: $white;
+  font-size: 10.5px;
+  letter-spacing: 0;
+}
