@@ -12,6 +12,7 @@ const API_PRODUCT = {
   emoji: '🍓',
   category: 'mochi' as const,
   is_new: false,
+  image_url: null,
   created_at: '2026-01-01T00:00:00',
 };
 
@@ -52,6 +53,7 @@ describe('ProductService', () => {
         emoji: '🍓',
         category: 'mochi',
         isNew: false,
+        imageUrl: null,
       },
     ]);
   });
@@ -76,6 +78,7 @@ describe('ProductService', () => {
       emoji: '🍓',
       category: 'mochi',
       is_new: true,
+      image_url: null,
     });
     postReq.flush({ ...API_PRODUCT, is_new: true });
     await Promise.resolve();
@@ -106,6 +109,7 @@ describe('ProductService', () => {
       emoji: '🍓',
       category: 'mochi',
       is_new: false,
+      image_url: null,
     });
     putReq.flush({ ...API_PRODUCT, name: 'Mochi Actualizado', price: 4.0 });
     await Promise.resolve();
@@ -125,5 +129,36 @@ describe('ProductService', () => {
 
     httpMock.expectOne(`${environment.apiUrl}/products`).flush([]);
     await removePromise;
+  });
+
+  it('uploadImage() posts the file as multipart and returns a public URL on the API host', async () => {
+    const { service, httpMock } = await createService();
+    const file = new File(['x'], 'foto.jpg', { type: 'image/jpeg' });
+
+    const promise = service.uploadImage(file);
+    const req = httpMock.expectOne(`${environment.apiUrl}/uploads/products`);
+    expect(req.request.method).toBe('POST');
+    expect((req.request.body as FormData).get('file')).toBe(file);
+    req.flush({ url: '/uploads/abc.jpg' });
+
+    expect(await promise).toBe(`${environment.apiUrl}/uploads/abc.jpg`);
+  });
+
+  it('serves uploaded photos from the API host and stores them as relative paths', async () => {
+    const { service, httpMock } = await createService([{ ...API_PRODUCT, image_url: '/uploads/abc.jpg' }]);
+    expect(service.products()[0].imageUrl).toBe(`${environment.apiUrl}/uploads/abc.jpg`);
+
+    const promise = service.update(1, { ...service.products()[0] });
+    const put = httpMock.expectOne(`${environment.apiUrl}/products/1`);
+    expect((put.request.body as { image_url: string }).image_url).toBe('/uploads/abc.jpg');
+    put.flush(API_PRODUCT);
+    await Promise.resolve();
+    httpMock.expectOne(`${environment.apiUrl}/products`).flush([]);
+    await promise;
+  });
+
+  it('leaves static photos untouched', async () => {
+    const { service } = await createService([{ ...API_PRODUCT, image_url: '/images/products/sencha.jpg' }]);
+    expect(service.products()[0].imageUrl).toBe('/images/products/sencha.jpg');
   });
 });
