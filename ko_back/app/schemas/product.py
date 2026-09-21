@@ -10,6 +10,7 @@ class ProductWrite(BaseModel):
     price: float
     description: str
     emoji: str
+    image_url: str | None = None
     category: ProductCategory
     is_new: bool = False
 
@@ -20,6 +21,7 @@ class ProductResponse(BaseModel):
     price: float
     description: str
     emoji: str
+    image_url: str | None = None
     category: ProductCategory
     is_new: bool
     created_at: datetime
