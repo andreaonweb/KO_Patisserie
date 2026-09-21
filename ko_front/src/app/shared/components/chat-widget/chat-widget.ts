@@ -23,8 +23,20 @@ export class ChatWidgetComponent {
   open = signal(false);
   draft = signal('');
   private list = viewChild<ElementRef<HTMLElement>>('list');
+  private input = viewChild<ElementRef<HTMLTextAreaElement>>('chatInput');
+  private fab = viewChild<ElementRef<HTMLButtonElement>>('fab');
+  private wasOpen = false;
 
   constructor() {
+    // El foco entra en el panel al abrirlo y vuelve al botón al cerrarlo (WCAG 2.4.3).
+    effect(() => {
+      const open = this.open();
+      untracked(() => {
+        if (open) setTimeout(() => this.input()?.nativeElement.focus());
+        else if (this.wasOpen) this.fab()?.nativeElement.focus();
+        this.wasOpen = open;
+      });
+    });
     // Con el panel abierto, lo que llega se da por leído.
     effect(() => {
       if (this.open() && this.chat.customerUnread() > 0) untracked(() => this.chat.markRead());

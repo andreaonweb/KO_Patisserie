@@ -19,10 +19,14 @@
   </nav>
 
   <div class="navbar__actions">
-    <button type="button" class="navbar__cart-btn" (click)="toggleCart()" aria-label="Abrir carrito">
-      Carrito
-      <span class="navbar__cart-badge">{{ cart.itemCount() }}</span>
+    <button #cartBtn type="button" class="navbar__cart-btn" (click)="toggleCart()"
+      [attr.aria-label]="'Abrir carrito, ' + itemsLabel()" aria-haspopup="dialog"
+      [attr.aria-expanded]="cartOpen()">
+      <lucide-icon class="navbar__cart-icon" [name]="ShoppingBag" [size]="16" aria-hidden="true" />
+      <span class="navbar__cart-label">Carrito</span>
+      <span class="navbar__cart-badge" aria-hidden="true">{{ cart.itemCount() }}</span>
     </button>
+    <span class="sr-only" role="status" aria-live="polite">{{ itemsLabel() }} en el carrito</span>
     @if (auth.isLoggedIn()) {
     <button type="button" class="navbar__auth" (click)="auth.logout()">Salir</button>
     } @else {
@@ -33,10 +37,11 @@
 
 @if (cartOpen()) {
 <div class="cart-overlay" (click)="toggleCart()"></div>
-<aside class="cart-panel" role="dialog" aria-label="Carrito">
+<aside #cartPanel class="cart-panel" role="dialog" aria-modal="true" aria-label="Carrito"
+  (keydown.escape)="closeCart()" (keydown.tab)="trapFocus($event)">
   <div class="cart-panel__header">
     <h2>Tu carrito</h2>
-    <button type="button" class="cart-panel__close" (click)="toggleCart()" aria-label="Cerrar carrito">×</button>
+    <button #closeBtn type="button" class="cart-panel__close" (click)="closeCart()" aria-label="Cerrar carrito">×</button>
   </div>
 
   <div class="cart-panel__body">

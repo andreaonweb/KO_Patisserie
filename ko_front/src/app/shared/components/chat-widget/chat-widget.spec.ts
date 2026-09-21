@@ -142,4 +142,25 @@ describe('ChatWidgetComponent', () => {
     expect(el('.chat__offline')?.textContent).toContain('Reconectando');
     expect((el('.chat__send') as HTMLButtonElement).disabled).toBe(true);
   });
+
+  describe('accessibility', () => {
+    const tick = () => new Promise(resolve => setTimeout(resolve));
+
+    it('focuses the message box when the panel opens and returns focus to the button on close', async () => {
+      open();
+      await tick();
+      expect(document.activeElement).toBe(el('.chat__input'));
+
+      el('.chat__close')!.click();
+      fixture.detectChanges();
+      await tick();
+      expect(document.activeElement).toBe(el('.chat__fab'));
+    });
+
+    it('keeps the visible label in the button name (no aria-label that hides it)', () => {
+      const fab = el('.chat__fab')!;
+      expect(fab.getAttribute('aria-label')).toBeNull();
+      expect(fab.textContent).toContain('¿Necesitas ayuda?');
+    });
+  });
 });

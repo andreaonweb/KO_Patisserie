@@ -29,7 +29,7 @@
     }
 
     <form class="chat__form" (submit)="onSubmit($event)">
-      <textarea class="chat__input" rows="1" maxlength="1000" placeholder="Escribe tu mensaje"
+      <textarea #chatInput class="chat__input" rows="1" maxlength="1000" placeholder="Escribe tu mensaje"
         aria-label="Mensaje" [value]="draft()" (input)="draft.set($any($event.target).value)"
         (keydown.enter)="onEnter($event)"></textarea>
       <button type="submit" class="chat__send" [disabled]="!chat.canSend()" aria-label="Enviar mensaje">
@@ -39,8 +39,8 @@
   </section>
   }
 
-  <button type="button" class="chat__fab" (click)="toggle()" [attr.aria-expanded]="open()"
-    aria-label="Abrir el chat de ayuda">
+  <button #fab type="button" class="chat__fab" (click)="toggle()" [attr.aria-expanded]="open()"
+    aria-haspopup="dialog">
     <lucide-icon [name]="MessageCircle" [size]="18" aria-hidden="true" />
     <span>¿Necesitas ayuda?</span>
     @if (!open() && chat.customerUnread() > 0) {
