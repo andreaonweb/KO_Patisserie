@@ -1,11 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { catchError, of } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
 import { OrderService } from '../../core/services/order.service';
 import { formatPickupTime } from '../../core/utils/pickup-slots';
+import { pollWhileVisible } from '../../core/utils/poll';
 import { Product } from '../../core/models/product.model';
 import { ProductIconComponent } from '../../shared/components/product-icon/product-icon';
 import type { Order, OrderStatus } from '../../core/models/order.model';
@@ -41,15 +41,7 @@ export class AdminComponent {
 
   activeTab = signal<'productos' | 'pedidos'>('productos');
   ordersLoadError = signal('');
-  orders = toSignal(
-    this.orderService.getAll().pipe(
-      catchError(e => {
-        this.ordersLoadError.set((e.message ?? 'Error al cargar los pedidos'));
-        return of([] as Order[]);
-      })
-    ),
-    { initialValue: [] as Order[] }
-  );
+  orders = signal<Order[]>([]);
   orderError = signal('');
   private statusOverrides = signal<Record<number, OrderStatus>>({});
   readonly orderStatuses: OrderStatus[] = ['pendiente', 'listo', 'entregado'];
@@ -139,6 +131,20 @@ export class AdminComponent {
     return Number.isFinite(n) ? n : null;
   }
 
+  constructor() {
+    // Los pedidos nuevos y los cambios de estado aparecen sin recargar la página.
+    pollWhileVisible(
+      () => this.orderService.getAll(),
+      e => this.ordersLoadError.set(e.message ?? 'Error al cargar los pedidos')
+    )
+      .pipe(takeUntilDestroyed())
+      .subscribe(rows => {
+        this.ordersLoadError.set('');
+        this.orders.set(rows);
+        this.dropConfirmedOverrides(rows);
+      });
+  }
+
   form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     price: [0, [Validators.required, Validators.min(0.01)]],
@@ -221,6 +227,17 @@ export class AdminComponent {
     } catch (e: any) {
       this.error.set((e.message ?? 'Error al borrar el producto'));
     }
+  }
+
+  /**
+   * El override tapa una consulta que salió antes del cambio y llega con el estado viejo.
+   * En cuanto el servidor ya devuelve el estado nuevo, deja de hacer falta.
+   */
+  private dropConfirmedOverrides(rows: Order[]): void {
+    const overrides = this.statusOverrides();
+    const stale = Object.keys(overrides).map(Number).filter(id => rows.find(o => o.id === id)?.status === overrides[id]);
+    if (stale.length === 0) return;
+    this.statusOverrides.update(m => Object.fromEntries(Object.entries(m).filter(([id]) => !stale.includes(Number(id)))));
   }
 
   statusOf(order: Order): OrderStatus {
