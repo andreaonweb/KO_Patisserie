@@ -3,12 +3,13 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
+import { ProductIconComponent } from '../product-icon/product-icon';
 import { LucideAngularModule, House, UtensilsCrossed, Heart, ShoppingBag, Settings, ClipboardList } from 'lucide-angular';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, CurrencyPipe, LucideAngularModule],
+  imports: [RouterLink, RouterLinkActive, CurrencyPipe, LucideAngularModule, ProductIconComponent],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })

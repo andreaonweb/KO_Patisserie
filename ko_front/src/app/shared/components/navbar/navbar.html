@@ -1,79 +1,77 @@
-<nav class="navbar">
-  <div class="navbar__brand">
-    <span class="navbar__logo">Shirayuki Pâtisserie 🌸</span>
-  </div>
+<a class="skip" href="#contenido">Saltar al contenido</a>
 
-  <ul class="navbar__links">
-    <li><a [routerLink]="'home'" routerLinkActive="active">
-        <lucide-icon [name]="House" [size]="16" aria-hidden="true"></lucide-icon> Inicio
-      </a></li>
-    <li><a [routerLink]="'menu'" routerLinkActive="active">
-        <lucide-icon [name]="UtensilsCrossed" [size]="16" aria-hidden="true"></lucide-icon> Menú
-      </a></li>
-    <li><a [routerLink]="'about'" routerLinkActive="active">
-        <lucide-icon [name]="Heart" [size]="16" aria-hidden="true"></lucide-icon> Nosotras
-      </a></li>
-    @if (auth.isLoggedIn()) {
-    <li><a [routerLink]="'pedidos'" routerLinkActive="active">
-        <lucide-icon [name]="ClipboardList" [size]="16" aria-hidden="true"></lucide-icon> Mis pedidos
-      </a></li>
-    <li><a [routerLink]="'admin'" routerLinkActive="active">
-        <lucide-icon [name]="Settings" [size]="16" aria-hidden="true"></lucide-icon> Admin
-      </a></li>
+<header class="navbar">
+  <a class="navbar__brand" routerLink="/home" aria-label="KŌ Pâtisserie, ir al inicio">
+    <span class="navbar__logo">KŌ</span>
+    <span class="navbar__tag">Pâtisserie</span>
+  </a>
+
+  <nav class="navbar__links" aria-label="Principal">
+    <a routerLink="/home" routerLinkActive="active">Inicio</a>
+    <a routerLink="/menu" routerLinkActive="active">Menú</a>
+    <a routerLink="/about" routerLinkActive="active">Nosotros</a>
+    @if (auth.currentUser()?.role === 'customer') {
+    <a routerLink="/pedidos" routerLinkActive="active">Mis pedidos</a>
     }
-  </ul>
+    @if (auth.currentUser()?.role === 'admin') {
+    <a routerLink="/admin" routerLinkActive="active">Admin</a>
+    }
+  </nav>
 
   <div class="navbar__actions">
-    @if (auth.isLoggedIn()) {
-    <button class="navbar__cart-btn" (click)="toggleCart()">
-      <lucide-icon [name]="ShoppingBag" [size]="22" aria-label="Carrito"></lucide-icon>
-      @if (cart.itemCount() > 0) {
+    <button type="button" class="navbar__cart-btn" (click)="toggleCart()" aria-label="Abrir carrito">
+      Carrito
       <span class="navbar__cart-badge">{{ cart.itemCount() }}</span>
-      }
     </button>
-    <button class="btn-logout" (click)="auth.logout()">Salir</button>
+    @if (auth.isLoggedIn()) {
+    <button type="button" class="navbar__auth" (click)="auth.logout()">Salir</button>
     } @else {
-    <a [routerLink]="'auth'" class="btn-login">Entrar ✨</a>
+    <a routerLink="/auth" class="navbar__auth">Entrar</a>
     }
   </div>
-</nav>
-
+</header>
 
 @if (cartOpen()) {
 <div class="cart-overlay" (click)="toggleCart()"></div>
-}
-
-
-<aside class="cart-panel" [class.cart-panel--open]="cartOpen()">
+<aside class="cart-panel" role="dialog" aria-label="Carrito">
   <div class="cart-panel__header">
-    <h2>🛒 Tu carrito</h2>
-    <button class="cart-panel__close" (click)="toggleCart()">✕</button>
+    <h2>Tu carrito</h2>
+    <button type="button" class="cart-panel__close" (click)="toggleCart()" aria-label="Cerrar carrito">×</button>
   </div>
 
-  @if (cart.itemCount() === 0) {
-  <p class="cart-panel__empty">Tu carrito está vacío 🌸</p>
-  } @else {
-  <ul class="cart-panel__list">
-    @for (item of cartItems(); track item.product.id) {
-    <li class="cart-item">
-      <span class="cart-item__emoji">{{ item.product.emoji }}</span>
-      <div class="cart-item__info">
-        <p class="cart-item__name">{{ item.product.name }}</p>
-        <p class="cart-item__price">{{ item.product.price | currency:'EUR' }} × {{ item.quantity }}</p>
-      </div>
-      <div class="cart-item__controls">
-        <button (click)="cart.remove(item.product.id)">−</button>
-        <span>{{ item.quantity }}</span>
-        <button (click)="cart.add(item.product)">+</button>
-        <button class="cart-item__delete" (click)="cart.removeAll(item.product.id)">🗑️</button>
-      </div>
-    </li>
+  <div class="cart-panel__body">
+    @if (cart.itemCount() === 0) {
+    <p class="cart-panel__empty">El carrito está vacío. Elige algo de la vitrina de hoy.</p>
+    } @else {
+    <ul class="cart-panel__list">
+      @for (item of cartItems(); track item.product.id) {
+      <li class="cart-item">
+        <span class="cart-item__thumb"><app-product-icon [category]="item.product.category" [imageUrl]="item.product.imageUrl" [size]="24" [frame]="52" /></span>
+        <div class="cart-item__info">
+          <p class="cart-item__name">{{ item.product.name }}</p>
+          <p class="cart-item__price">{{ item.product.price | currency:'EUR' }} · unidad</p>
+          <div class="cart-item__controls">
+            <button type="button" (click)="cart.remove(item.product.id)"
+              [attr.aria-label]="'Una unidad menos de ' + item.product.name">−</button>
+            <span>{{ item.quantity }}</span>
+            <button type="button" (click)="cart.add(item.product)"
+              [attr.aria-label]="'Una unidad más de ' + item.product.name">+</button>
+            <button type="button" class="cart-item__delete" (click)="cart.removeAll(item.product.id)"
+              [attr.aria-label]="'Quitar ' + item.product.name">Quitar</button>
+          </div>
+        </div>
+        <span class="cart-item__total">{{ item.product.price * item.quantity | currency:'EUR' }}</span>
+      </li>
+      }
+    </ul>
     }
-  </ul>
+  </div>
 
+  @if (cart.itemCount() > 0) {
   <div class="cart-panel__footer">
-    <p class="cart-panel__total">Total: {{ cart.total() | currency:'EUR' }}</p>
-    <button class="btn-primary" [routerLink]="'/checkout'" (click)="toggleCart()">Hacer pedido ✨</button>
+    <div class="cart-panel__total"><span>Total</span><strong>{{ cart.total() | currency:'EUR' }}</strong></div>
+    <button type="button" class="btn-primary" routerLink="/checkout" (click)="toggleCart()">Confirmar pedido</button>
   </div>
   }
 </aside>
+}

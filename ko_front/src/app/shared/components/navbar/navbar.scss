@@ -1,309 +1,337 @@
 @use '../../../../styles/variables' as *;
 @use '../../../../styles/mixins' as *;
 
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: $text-dark;
+  color: $cream;
+  padding: 10px 16px;
+  z-index: 200;
+
+  &:focus {
+    left: 8px;
+    top: 8px;
+  }
+}
+
 .navbar {
-  @include flex-center;
-  justify-content: space-between;
-  padding: 1rem 2.5rem;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid $border;
   position: sticky;
   top: 0;
-  z-index: 100;
-  position: relative;
+  z-index: 60;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  padding: 0 $gutter;
+  min-height: 78px;
+  background: rgba(255, 250, 245, 0.94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid $border;
 
   &__brand {
-    @include flex-center;
-    gap: 0.5rem;
-    cursor: default;
+    justify-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    color: $text-dark;
+
+    &:hover {
+      text-decoration: none;
+      color: $text-dark;
+    }
   }
 
   &__logo {
     font-family: $font-title;
-    font-size: 1.3rem;
-    color: $text-dark;
-    letter-spacing: 0.02em;
-    background: linear-gradient(135deg, darken($primary, 20%), darken($accent, 20%));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 25px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    line-height: 1;
   }
 
-  &__title {
-    font-family: $font-title;
-    font-size: 1.3rem;
-    color: $text-dark;
-    letter-spacing: 0.02em;
-  }
-
-  &__page-badge {
-    font-size: 0.78rem;
-    font-weight: 600;
+  &__tag {
+    font-size: 8.5px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
     color: $text-muted;
-    background: $secondary;
-    padding: 0.2rem 0.7rem;
-    border-radius: $radius-xl;
-    margin-left: 0.25rem;
-    transition: opacity 0.2s;
   }
 
   &__links {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
     display: flex;
     align-items: center;
-    gap: 2rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: clamp(10px, 2vw, 30px);
 
     a {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      text-decoration: none;
-      color: $text-dark;
-      font-weight: 600;
-      font-size: 0.95rem;
-      padding: 0.4rem 0.75rem;
-      border-radius: $radius-xl;
-      transition: all 0.2s;
+      padding: 9px 2px;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: $text-muted;
+      border-bottom: 2px solid transparent;
 
       &:hover {
         color: $text-dark;
-        background: rgba($primary, 0.08);
+        text-decoration: none;
       }
 
       &.active {
-        color: darken($primary, 10%);
-        background: rgba($primary, 0.12);
-        font-weight: 600;
+        color: $text-dark;
+        border-bottom-color: $primary;
       }
-
-      ::ng-deep lucide-icon svg {
-        stroke: darken($primary, 10%);
-        opacity: 0.85;
-        transition: opacity 0.2s;
-      }
-
-      &:hover ::ng-deep lucide-icon svg,
-      &.active ::ng-deep lucide-icon svg {
-        opacity: 1;
-      }
-    }
-  }
-
-  &__cart-btn {
-    ::ng-deep lucide-icon svg {
-      stroke: $primary;
     }
   }
 
   &__actions {
-    @include flex-center;
-    gap: 1.5rem;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
-  &__cart {
-    background: $accent-light;
-    padding: 0.4rem 0.9rem;
-    border-radius: $radius-xl;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: darken($accent, 20%);
-  }
-
-  &__counter-cart {
-    background: $accent-light;
-    padding: 0.4rem 0.9rem;
-    border-radius: $radius-xl;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: darken($accent, 20%);
-    transition: all 0.3s;
-  }
-}
-
-.btn-login {
-  @include btn-primary;
-}
-
-.btn-logout {
-  background: transparent;
-  border: 1.5px solid $border;
-  border-radius: $radius-xl;
-  padding: 0.5rem 1.2rem;
-  color: $text-muted;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: all 0.2s;
-
-  &:hover {
-    border-color: $primary;
+  &__cart-btn {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: $white;
+    border: 1px solid $border;
+    border-radius: $radius-pill;
+    padding: 9px 16px;
+    cursor: pointer;
+    font-size: 11.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     color: $text-dark;
+
+    &:hover {
+      border-color: $primary;
+      background: $secondary;
+    }
+  }
+
+  &__cart-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: $radius-pill;
+    background: $primary;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  &__auth {
+    background: $text-dark;
+    border: 1px solid $text-dark;
+    border-radius: $radius-pill;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 11.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $cream;
+
+    &:hover {
+      background: $ink-hover;
+      color: $cream;
+      text-decoration: none;
+    }
   }
 }
 
 .cart-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: 99;
+  z-index: 90;
+  background: rgba(74, 63, 63, 0.42);
 }
 
 .cart-panel {
   position: fixed;
   top: 0;
   right: 0;
-  width: 360px;
-  height: 100dvh;
-  background: white;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
-  z-index: 100;
+  z-index: 91;
+  width: min(420px, 100%);
+  height: 100%;
+  background: $cream;
+  border-left: 1px solid $border;
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-
-  &--open {
-    transform: translateX(0);
-  }
+  animation: koSlide 0.3s ease both;
 
   &__header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #f0e6f0;
+    justify-content: space-between;
+    padding: 24px 26px;
+    border-bottom: 1px solid $border;
 
     h2 {
-      margin: 0;
-      font-size: 1.2rem;
+      font-size: 27px;
     }
   }
 
   &__close {
     background: none;
-    border: none;
-    font-size: 1.2rem;
+    border: 1px solid $border;
+    border-radius: $radius-pill;
+    width: 34px;
+    height: 34px;
     cursor: pointer;
-    color: #888;
+    color: $text-dark;
+    font-size: 17px;
+    line-height: 1;
+
+    &:hover {
+      background: $secondary;
+    }
+  }
+
+  &__body {
+    flex: 1;
+    overflow: auto;
+    padding: 20px 26px;
   }
 
   &__empty {
-    padding: 2rem;
-    text-align: center;
-    color: #aaa;
+    margin-top: 20px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: $text-muted;
   }
 
   &__list {
     list-style: none;
-    margin: 0;
-    padding: 1rem 1.5rem;
-    flex: 1;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 18px;
   }
 
   &__footer {
-    padding: 1.25rem 1.5rem;
-    border-top: 1px solid #f0e6f0;
+    border-top: 1px solid $border;
+    padding: 22px 26px 26px;
+    background: $white;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 18px;
+
+    .btn-primary {
+      width: 100%;
+    }
   }
 
   &__total {
-    font-weight: 700;
-    font-size: 1.1rem;
-    text-align: right;
-    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+
+    span {
+      font-size: 11.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: $text-muted;
+    }
+
+    strong {
+      font-family: $font-title;
+      font-weight: 400;
+      font-size: 30px;
+    }
   }
 }
 
 .cart-item {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  gap: 14px;
+  align-items: flex-start;
+  border-bottom: 1px solid $border;
+  padding-bottom: 18px;
 
-  &__emoji {
-    font-size: 1.8rem;
+  &__thumb {
+    @include flex-center;
+    @include stripes($secondary, $cream, 135deg, 9px);
+    width: 54px;
+    height: 54px;
+    flex: none;
+    border-radius: $radius-sm;
+    border: 1px solid $border;
+    color: $rose;
+    overflow: hidden;
   }
 
   &__info {
     flex: 1;
-
-    p {
-      margin: 0;
-    }
+    min-width: 0;
   }
 
   &__name {
-    font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 15px;
+    margin-bottom: 3px;
   }
 
   &__price {
-    font-size: 0.8rem;
-    color: #888;
+    font-size: 12.5px;
+    color: $text-muted;
+    margin-bottom: 10px;
   }
 
   &__controls {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 8px;
+    font-size: 14px;
 
     button {
-      width: 26px;
-      height: 26px;
-      border: 1px solid #eee;
-      border-radius: 50%;
-      background: white;
+      width: 28px;
+      height: 28px;
+      border: 1px solid $border;
+      background: $white;
+      border-radius: $radius-pill;
       cursor: pointer;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      color: $text-dark;
+
+      &:hover {
+        background: $secondary;
+      }
     }
 
     span {
-      min-width: 1.2rem;
+      min-width: 22px;
       text-align: center;
-      font-size: 0.9rem;
     }
   }
 
-  &__delete {
-    border: none !important;
-    font-size: 1rem !important;
+  button.cart-item__delete {
+    width: auto;
+    padding: 0 10px;
+    margin-left: 6px;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $rose;
+  }
+
+  &__total {
+    font-family: $font-title;
+    font-size: 20px;
   }
 }
 
-.navbar__cart-btn {
-  position: relative;
-  background: none;
-  border: none;
-  font-size: 1.3rem;
-  cursor: pointer;
-}
+@media (max-width: 900px) {
+  .navbar {
+    grid-template-columns: 1fr auto;
+    padding-block: 12px;
 
-.navbar__cart-badge {
-  position: absolute;
-  top: -6px;
-  right: -8px;
-  background: #e75480;
-  color: white;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  font-size: 0.65rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
+    &__links {
+      grid-column: 1 / -1;
+      order: 3;
+    }
+  }
 }
