@@ -1,19 +1,49 @@
-<section class="menu">
-  <div class="menu__header">
-    <h1>Nuestra Carta</h1>
-    <p>おいしいメニュー · Dulces hechos con amor</p>
+<section class="page menu">
+  <p class="eyebrow">Carta del día</p>
+  <h1 class="page-title">Dulces y bebidas</h1>
+  <p class="lead">Elaboración limitada. Lo que ves aquí es lo que queda hoy en vitrina.</p>
+
+  <div class="menu__filters">
+    <input type="search" class="menu__search" placeholder="Buscar en la carta…" aria-label="Buscar en la carta"
+      [value]="query()" (input)="query.set($any($event.target).value)" />
+    <label class="menu__price">
+      Hasta
+      <input type="number" min="0" step="0.5" placeholder="€" aria-label="Precio máximo"
+        [value]="maxPrice() ?? ''" (input)="setMaxPrice($any($event.target).value)" />
+    </label>
+    @if (hasFilters()) {
+    <button type="button" class="menu__clear" (click)="clearFilters()">Limpiar</button>
+    }
   </div>
 
-  @if (cart.itemCount() > 0) {
-  <div class="menu__cart-info">
-    🛒 {{ cart.itemCount() }} artículos · Total: {{ cart.total() | currency:'EUR' }}
+  <div class="menu__chips" role="group" aria-label="Categoría">
+    @for (cat of categories; track cat.value) {
+    <button type="button" class="menu__chip" [class.menu__chip--on]="category() === cat.value"
+      [attr.aria-pressed]="category() === cat.value" (click)="category.set(cat.value)">{{ cat.label }}</button>
+    }
   </div>
+
+  @if (filtered().length === 0) {
+  <p class="menu__empty">Nada coincide con tu búsqueda. Prueba con otros filtros.</p>
   }
 
+  @if (sweets().length > 0) {
+  <h2 class="menu__section">Dulces</h2>
   <div class="menu__grid">
-    @for (product of products(); track product.id) {
+    @for (product of sweets(); track product.id) {
     <app-product-card [product]="product" [cartItems]="cartItems()" (onAdd)="addToCart($event)"
       (onRemove)="removeFromCart($event)" />
     }
   </div>
+  }
+
+  @if (drinks().length > 0) {
+  <h2 class="menu__section">Bebidas</h2>
+  <div class="menu__grid menu__grid--drinks">
+    @for (product of drinks(); track product.id) {
+    <app-product-card [product]="product" [cartItems]="cartItems()" [compact]="true" (onAdd)="addToCart($event)"
+      (onRemove)="removeFromCart($event)" />
+    }
+  </div>
+  }
 </section>
