@@ -12,6 +12,7 @@ class FakeProductService {
   create = vi.fn().mockResolvedValue(undefined);
   update = vi.fn().mockResolvedValue(undefined);
   remove = vi.fn().mockResolvedValue(undefined);
+  uploadImage = vi.fn().mockResolvedValue('http://api/uploads/new.jpg');
 }
 
 class FakeOrderService {
@@ -76,6 +77,7 @@ describe('AdminComponent', () => {
       price: 3.5,
       description: 'Tierno mochi.',
       category: 'mochi',
+      imageUrl: '',
       isNew: false,
     });
     expect(component.form.valid).toBe(true);
@@ -87,6 +89,7 @@ describe('AdminComponent', () => {
       price: 3.5,
       description: 'Tierno mochi relleno de anko y fresas frescas.',
       category: 'mochi',
+      imageUrl: '',
       isNew: false,
     });
 
@@ -98,6 +101,7 @@ describe('AdminComponent', () => {
       description: 'Tierno mochi relleno de anko y fresas frescas.',
       emoji: '',
       category: 'mochi',
+      imageUrl: null,
       isNew: false,
     });
     expect(component.editingId()).toBeNull();
@@ -117,6 +121,7 @@ describe('AdminComponent', () => {
       description: 'Tierno mochi relleno de anko y fresas frescas.',
       emoji: '🍓',
       category: 'mochi',
+      imageUrl: null,
       isNew: false,
     });
     expect(component.editingId()).toBeNull();
@@ -173,5 +178,105 @@ describe('AdminComponent', () => {
     orderService.updateStatus.mockRejectedValue(new Error('offline'));
     await component.changeStatus(SAMPLE_ORDER, 'listo' as OrderStatus);
     expect(component.orderError()).toContain('offline');
+  });
+
+  describe('filters and pagination', () => {
+    const product = (id: number, name: string, price: number, category: Product['category']): Product => ({
+      id, name, price, category, description: '', emoji: '',
+    });
+
+    beforeEach(() => {
+      productService.products.set([
+        product(1, 'Mochi de matcha', 3.6, 'mochi'),
+        product(2, 'Café de filtro', 2.8, 'drink'),
+        product(3, 'Tarta de matcha', 5.2, 'cake'),
+      ]);
+    });
+
+    it('searches products ignoring case and accents', () => {
+      component.setProductFilter({ q: 'CAFE' });
+      expect(component.filteredProducts().map(p => p.id)).toEqual([2]);
+    });
+
+    it('combines category and price range', () => {
+      component.setProductFilter({ q: 'matcha', min: 4 });
+      expect(component.filteredProducts().map(p => p.id)).toEqual([3]);
+      component.setProductFilter({ min: null, category: 'mochi' });
+      expect(component.filteredProducts().map(p => p.id)).toEqual([1]);
+    });
+
+    it('clearProductFilters() restores the full list', () => {
+      component.setProductFilter({ q: 'zzz' });
+      expect(component.filteredProducts()).toHaveLength(0);
+      component.clearProductFilters();
+      expect(component.filteredProducts()).toHaveLength(3);
+      expect(component.hasProductFilters()).toBe(false);
+    });
+
+    it('paginates products and resets to page 1 when filtering', () => {
+      productService.products.set(Array.from({ length: 20 }, (_, i) => product(i + 1, `P${i + 1}`, 1, 'mochi')));
+      expect(component.productPages()).toBe(3);
+      component.goToProductPage(3);
+      expect(component.pagedProducts()).toHaveLength(4);
+      component.setProductFilter({ q: 'P1' });
+      expect(component.productPage()).toBe(1);
+    });
+
+    it('filters and paginates orders', async () => {
+      const orders: Order[] = Array.from({ length: 10 }, (_, i) => ({
+        ...SAMPLE_ORDER,
+        id: i + 1,
+        total: i + 1,
+        pickupName: i === 0 ? 'Lucía' : 'Ana',
+        status: i % 2 ? 'listo' : 'pendiente',
+      }));
+      orderService.getAll.mockReturnValue(of(orders));
+      const f = TestBed.createComponent(AdminComponent);
+      const c = f.componentInstance;
+
+      expect(c.orderPages()).toBe(2);
+      expect(c.pagedOrders()).toHaveLength(8);
+      c.setOrderFilter({ q: 'lucia' });
+      expect(c.filteredOrders().map(o => o.id)).toEqual([1]);
+      c.setOrderFilter({ q: '', status: 'listo', min: 5 });
+      expect(c.filteredOrders().map(o => o.id)).toEqual([6, 8, 10]);
+    });
+  });
+
+  describe('image upload', () => {
+    const input = (file?: File) => ({ files: file ? [file] : [], value: 'x' }) as unknown as HTMLInputElement;
+    const jpg = (size = 10) => new File([new Uint8Array(size)], 'a.jpg', { type: 'image/jpeg' });
+
+    it('uploads the chosen file and stores the returned URL in the form', async () => {
+      await component.onImageSelected(input(jpg()));
+      expect(productService.uploadImage).toHaveBeenCalled();
+      expect(component.form.controls.imageUrl.value).toBe('http://api/uploads/new.jpg');
+      expect(component.uploading()).toBe(false);
+    });
+
+    it('rejects unsupported formats without calling the API', async () => {
+      await component.onImageSelected(input(new File(['x'], 'a.gif', { type: 'image/gif' })));
+      expect(productService.uploadImage).not.toHaveBeenCalled();
+      expect(component.imageError()).toContain('Formato');
+    });
+
+    it('rejects files over 5 MB without calling the API', async () => {
+      await component.onImageSelected(input(jpg(5 * 1024 * 1024 + 1)));
+      expect(productService.uploadImage).not.toHaveBeenCalled();
+      expect(component.imageError()).toContain('5 MB');
+    });
+
+    it('shows the server error when the upload fails', async () => {
+      productService.uploadImage.mockRejectedValue({ error: { detail: 'La imagen supera los 5 MB' } });
+      await component.onImageSelected(input(jpg()));
+      expect(component.imageError()).toBe('La imagen supera los 5 MB');
+      expect(component.form.controls.imageUrl.value).toBe('');
+    });
+
+    it('removeImage() clears the photo', async () => {
+      await component.onImageSelected(input(jpg()));
+      component.removeImage();
+      expect(component.form.controls.imageUrl.value).toBe('');
+    });
   });
 });
