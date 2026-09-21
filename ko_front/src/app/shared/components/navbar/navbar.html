@@ -1,24 +1,24 @@
 <a class="skip" href="#contenido">Saltar al contenido</a>
 
 <header class="navbar">
+  <button #menuBtn type="button" class="navbar__menu-btn" (click)="toggleMenu()" aria-label="Abrir menú"
+    aria-haspopup="dialog" aria-controls="menu-movil" [attr.aria-expanded]="menuOpen()">
+    <lucide-icon [name]="MenuIcon" [size]="20" aria-hidden="true" />
+  </button>
+
   <a class="navbar__brand" routerLink="/home" aria-label="KŌ Pâtisserie, ir al inicio">
     <span class="navbar__logo">KŌ</span>
     <span class="navbar__tag">Pâtisserie</span>
   </a>
 
   <nav class="navbar__links" aria-label="Principal">
-    <a routerLink="/home" routerLinkActive="active">Inicio</a>
-    <a routerLink="/menu" routerLinkActive="active">Menú</a>
-    <a routerLink="/about" routerLinkActive="active">Nosotros</a>
-    @if (auth.currentUser()?.role === 'customer') {
-    <a routerLink="/pedidos" routerLinkActive="active">Mis pedidos</a>
-    }
-    @if (auth.currentUser()?.role === 'admin') {
-    <a routerLink="/admin" routerLinkActive="active">Admin</a>
+    @for (link of links(); track link.path) {
+    <a [routerLink]="link.path" routerLinkActive="active">{{ link.label }}</a>
     }
   </nav>
 
   <div class="navbar__actions">
+    @if (showCart()) {
     <button #cartBtn type="button" class="navbar__cart-btn" (click)="toggleCart()"
       [attr.aria-label]="'Abrir carrito, ' + itemsLabel()" aria-haspopup="dialog"
       [attr.aria-expanded]="cartOpen()">
@@ -27,6 +27,7 @@
       <span class="navbar__cart-badge" aria-hidden="true">{{ cart.itemCount() }}</span>
     </button>
     <span class="sr-only" role="status" aria-live="polite">{{ itemsLabel() }} en el carrito</span>
+    }
     @if (auth.isLoggedIn()) {
     <button type="button" class="navbar__auth" (click)="auth.logout()">Salir</button>
     } @else {
@@ -35,7 +36,25 @@
   </div>
 </header>
 
-@if (cartOpen()) {
+@if (menuOpen()) {
+<div class="menu-overlay" (click)="closeMenu()"></div>
+<aside #menuPanel id="menu-movil" class="menu-panel" role="dialog" aria-modal="true" aria-label="Menú de navegación"
+  (keydown.escape)="closeMenu()" (keydown.tab)="trapMenuFocus($event)">
+  <div class="menu-panel__header">
+    <span class="navbar__logo" aria-hidden="true">KŌ</span>
+    <button #menuCloseBtn type="button" class="menu-panel__close" (click)="closeMenu()" aria-label="Cerrar menú">
+      <lucide-icon [name]="X" [size]="18" aria-hidden="true" />
+    </button>
+  </div>
+  <nav class="menu-panel__links" aria-label="Principal">
+    @for (link of links(); track link.path) {
+    <a [routerLink]="link.path" routerLinkActive="active" (click)="closeMenu()">{{ link.label }}</a>
+    }
+  </nav>
+</aside>
+}
+
+@if (showCart() && cartOpen()) {
 <div class="cart-overlay" (click)="toggleCart()"></div>
 <aside #cartPanel class="cart-panel" role="dialog" aria-modal="true" aria-label="Carrito"
   (keydown.escape)="closeCart()" (keydown.tab)="trapFocus($event)">

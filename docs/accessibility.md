@@ -25,7 +25,7 @@ Los tokens están en `ko_front/src/styles/variables.scss`.
 
 Sin scroll horizontal a 320 px de ancho en todas las páginas y paneles. Se corrigió:
 - las rejillas con `minmax(NNNpx, 1fr)` fijo → `minmax(min(100%, NNNpx), 1fr)`;
-- la barra de navegación (en pantallas ≤ 480 px el botón del carrito muestra un icono; su nombre accesible sigue siendo "Abrir carrito, N artículos");
+- la barra de navegación: por debajo de 900 px las pestañas se sustituyen por un botón de hamburguesa, a la izquierda del logo, que abre un menú lateral (diálogo modal con foco atrapado, `Escape` para cerrar y foco devuelto al botón); en pantallas ≤ 480 px el botón del carrito muestra un icono y su nombre accesible sigue siendo "Abrir carrito, N artículos";
 - el panel de admin: pestañas, filas de producto y paginación pasan a varias líneas (antes un botón quedaba recortado e inalcanzable);
 - el panel del chat ya cabe en pantallas estrechas.
 

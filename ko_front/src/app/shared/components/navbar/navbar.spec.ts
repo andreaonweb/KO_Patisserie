@@ -131,4 +131,121 @@ describe('Navbar', () => {
       expect(el('.cart-panel')!.getAttribute('aria-modal')).toBe('true');
     });
   });
+
+  describe('mobile menu', () => {
+    const tick = () => new Promise(resolve => setTimeout(resolve));
+    const el = (selector: string) => fixture.nativeElement.querySelector(selector) as HTMLElement | null;
+    const labels = (selector: string) =>
+      (Array.from(fixture.nativeElement.querySelectorAll(selector)) as HTMLElement[]).map(a => a.textContent!.trim());
+    const openMenu = () => {
+      (el('.navbar__menu-btn') as HTMLButtonElement).click();
+      fixture.detectChanges();
+    };
+
+    it('puts the hamburger button first, before the logo', () => {
+      const header = el('.navbar')!;
+      expect(header.firstElementChild).toBe(el('.navbar__menu-btn'));
+      expect(header.children[1]).toBe(el('.navbar__brand'));
+    });
+
+    it('is a labelled button that reports whether the menu is open', () => {
+      const button = el('.navbar__menu-btn')!;
+      expect(button.getAttribute('aria-label')).toBe('Abrir menú');
+      expect(button.getAttribute('aria-expanded')).toBe('false');
+      openMenu();
+      expect(button.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('lists the same links as the top bar, for a customer', () => {
+      openMenu();
+      const menuLinks = labels('.menu-panel__links a');
+      expect(menuLinks).toEqual(['Inicio', 'Menú', 'Nosotros', 'Mis pedidos']);
+      expect(menuLinks).toEqual(labels('.navbar__links a'));
+    });
+
+    it('shows Admin instead of Mis pedidos for an admin', () => {
+      const auth = TestBed.inject(AuthService) as unknown as { currentUser: { set(v: unknown): void } };
+      auth.currentUser.set({ id: 9, role: 'admin' });
+      fixture.detectChanges();
+      openMenu();
+      expect(labels('.menu-panel__links a')).toEqual(['Inicio', 'Menú', 'Nosotros', 'Admin']);
+    });
+
+    it('moves focus to the close button, and back to the hamburger when it closes', async () => {
+      const hamburger = el('.navbar__menu-btn') as HTMLButtonElement;
+      openMenu();
+      await tick();
+      expect(document.activeElement).toBe(el('.menu-panel__close'));
+
+      el('.menu-panel__close')!.click();
+      fixture.detectChanges();
+      await tick();
+      expect(document.activeElement).toBe(hamburger);
+    });
+
+    it('closes with Escape, with the overlay and when a link is chosen', () => {
+      openMenu();
+      el('.menu-panel')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      expect(component.menuOpen()).toBe(false);
+
+      openMenu();
+      el('.menu-overlay')!.click();
+      expect(component.menuOpen()).toBe(false);
+
+      openMenu();
+      (el('.menu-panel__links a') as HTMLAnchorElement).click();
+      expect(component.menuOpen()).toBe(false);
+    });
+
+    it('is a modal dialog that keeps Tab inside', () => {
+      openMenu();
+      const panel = el('.menu-panel')!;
+      expect(panel.getAttribute('aria-modal')).toBe('true');
+      const focusable = Array.from(panel.querySelectorAll('button, a[href]')) as HTMLElement[];
+      focusable[focusable.length - 1].focus();
+      const event = new KeyboardEvent('keydown', { key: 'Tab', cancelable: true });
+      panel.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(true);
+      expect(document.activeElement).toBe(focusable[0]);
+    });
+
+    it('closes by itself when the window grows past the mobile breakpoint', () => {
+      openMenu();
+      Object.defineProperty(window, 'innerWidth', { value: 1200, configurable: true });
+      component.onResize();
+      expect(component.menuOpen()).toBe(false);
+      Object.defineProperty(window, 'innerWidth', { value: 1024, configurable: true });
+    });
+  });
+
+  describe('cart visibility by role', () => {
+    const el = (selector: string) => fixture.nativeElement.querySelector(selector) as HTMLElement | null;
+    const setUser = (user: { id: number; role: string } | undefined) => {
+      const auth = TestBed.inject(AuthService) as unknown as { currentUser: { set(v: unknown): void } };
+      auth.currentUser.set(user);
+      fixture.detectChanges();
+    };
+
+    it('shows the cart button to customers', () => {
+      expect(el('.navbar__cart-btn')).not.toBeNull();
+    });
+
+    it('shows the cart button to visitors who are not logged in', () => {
+      setUser(undefined);
+      expect(el('.navbar__cart-btn')).not.toBeNull();
+    });
+
+    it('hides the cart button, its announcements and the cart panel for an admin', () => {
+      component.cartOpen.set(true);
+      fixture.detectChanges();
+      expect(el('.cart-panel')).not.toBeNull();
+
+      setUser({ id: 9, role: 'admin' });
+
+      expect(el('.navbar__cart-btn')).toBeNull();
+      expect(el('.cart-panel')).toBeNull();
+      expect(el('[role="status"]')).toBeNull();
+      expect(el('.navbar__auth')).not.toBeNull();
+    });
+  });
 });
