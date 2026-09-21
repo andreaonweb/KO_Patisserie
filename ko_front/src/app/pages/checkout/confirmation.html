@@ -22,7 +22,7 @@
     <div class="confirmation__pickup">
       <p class="confirmation__label">Retiro en tienda</p>
       <p>{{ order()!.pickupName }} · {{ order()!.pickupPhone }}</p>
-      <p>{{ order()!.pickupTime }}</p>
+      <p>{{ formatPickupTime(order()!.pickupTime) }}</p>
     </div>
   </div>
   }

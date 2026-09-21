@@ -35,10 +35,29 @@
         <label for="pickupPhone">Teléfono</label>
         <input id="pickupPhone" type="tel" formControlName="pickupPhone" />
       </div>
-      <div class="field">
-        <label for="pickupTime">Horario de retiro</label>
-        <input id="pickupTime" type="text" placeholder="Ej: Hoy 18:00" formControlName="pickupTime" />
+      @if (pickupDays.length === 0) {
+      <p class="msg-error">Ahora mismo no podemos preparar pedidos. Vuelve a intentarlo cuando la tienda abra.</p>
+      } @else {
+      <div class="checkout__when">
+        <div class="field">
+          <label for="pickupDay">Día de retiro</label>
+          <select id="pickupDay" [value]="selectedDay()" (change)="selectDay($any($event.target).value)">
+            @for (day of pickupDays; track day.value) {
+            <option [value]="day.value" [selected]="day.value === selectedDay()">{{ day.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label for="pickupTime">Hora de retiro</label>
+          <select id="pickupTime" formControlName="pickupTime">
+            <option value="" disabled>Elige una hora</option>
+            @for (slot of pickupSlots(); track slot) {
+            <option [value]="selectedDay() + 'T' + slot">{{ slot }}</option>
+            }
+          </select>
+        </div>
       </div>
+      }
       <button type="submit" class="btn-primary" [disabled]="form.invalid || saving()">
         {{ saving() ? 'Confirmando…' : 'Hacer pedido' }}
       </button>
