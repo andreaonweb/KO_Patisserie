@@ -1,38 +1,32 @@
-<section class="admin">
+<section class="page admin">
   <div class="admin__header">
-    <h1>Panel de administración</h1>
-    <p>Gestión de productos y pedidos</p>
-  </div>
-
-  <div class="admin__tabs">
-    <button type="button" class="admin__tab" [class.admin__tab--active]="activeTab() === 'productos'"
-      (click)="activeTab.set('productos')">Productos</button>
-    <button type="button" class="admin__tab" [class.admin__tab--active]="activeTab() === 'pedidos'"
-      (click)="activeTab.set('pedidos')">Pedidos</button>
+    <div>
+      <p class="eyebrow admin__eyebrow">Acceso restringido</p>
+      <h1 class="admin__title">Panel de administración</h1>
+    </div>
+    <div class="admin__tabs" role="tablist" aria-label="Secciones del panel">
+      <button type="button" role="tab" class="admin__tab" [class.admin__tab--active]="activeTab() === 'productos'"
+        [attr.aria-selected]="activeTab() === 'productos'" (click)="activeTab.set('productos')">Productos</button>
+      <button type="button" role="tab" class="admin__tab" [class.admin__tab--active]="activeTab() === 'pedidos'"
+        [attr.aria-selected]="activeTab() === 'pedidos'" (click)="activeTab.set('pedidos')">Pedidos</button>
+    </div>
   </div>
 
   @if (activeTab() === 'productos') {
   @if (error()) {
-  <p class="admin__error">{{ error() }}</p>
-  }
-
-  @if (productService.products().length === 0) {
-  <p class="admin__seed">No hay productos todavía.</p>
+  <p class="msg-error">{{ error() }}</p>
   }
 
   <div class="admin__content">
-    <form class="admin__form" [formGroup]="form" (ngSubmit)="submit()">
-      <div class="admin__field">
+    <form class="admin__panel admin__form" [formGroup]="form" (ngSubmit)="submit()">
+      <h2>{{ editingId() ? 'Editar producto' : 'Añadir producto' }}</h2>
+
+      <div class="field">
         <label for="name">Nombre</label>
         <input id="name" type="text" formControlName="name" />
       </div>
 
-      <div class="admin__field">
-        <label for="price">Precio (€)</label>
-        <input id="price" type="number" step="0.1" formControlName="price" />
-      </div>
-
-      <div class="admin__field">
+      <div class="field">
         <label for="category">Categoría</label>
         <select id="category" formControlName="category">
           @for (cat of categories; track cat) {
@@ -41,98 +35,176 @@
         </select>
       </div>
 
-      <div class="admin__field admin__field--checkbox">
-        <label>
-          <input type="checkbox" formControlName="isNew" />
-          Marcar como nuevo
-        </label>
+      <div class="field">
+        <label for="price">Precio (€)</label>
+        <input id="price" type="number" step="0.1" min="0" formControlName="price" />
       </div>
 
-      <div class="admin__field admin__field--full">
+      <div class="field">
         <label for="description">Descripción</label>
-        <textarea id="description" formControlName="description"></textarea>
+        <textarea id="description" rows="3" formControlName="description"></textarea>
       </div>
 
-      <div class="admin__actions">
-        <button type="submit" class="btn-primary" [disabled]="form.invalid || saving()">
-          {{ editingId() ? 'Guardar cambios' : 'Añadir producto' }}
-        </button>
-        @if (editingId()) {
-        <button type="button" class="admin__cancel" (click)="cancelEdit()">Cancelar</button>
+      <div class="field admin__photo">
+        <span>Foto</span>
+        @if (form.controls.imageUrl.value) {
+        <img class="admin__preview" [src]="form.controls.imageUrl.value" alt="Vista previa de la foto" />
+        }
+        <div class="admin__photo-actions">
+          <label class="admin__upload" [class.admin__upload--busy]="uploading()">
+            {{ uploading() ? 'Subiendo…' : (form.controls.imageUrl.value ? 'Cambiar foto' : 'Subir foto') }}
+            <input type="file" accept="image/jpeg,image/png,image/webp" [disabled]="uploading()"
+              (change)="onImageSelected($any($event.target))" />
+          </label>
+          @if (form.controls.imageUrl.value) {
+          <button type="button" class="admin__clear" (click)="removeImage()">Quitar foto</button>
+          }
+        </div>
+        @if (imageError()) {
+        <p class="msg-error" role="alert">{{ imageError() }}</p>
         }
       </div>
+
+      <label class="admin__check">
+        <input type="checkbox" formControlName="isNew" />
+        Marcar como nuevo
+      </label>
+
+      <button type="submit" class="btn-dark" [disabled]="form.invalid || saving()">
+        {{ editingId() ? 'Guardar cambios' : 'Guardar producto' }}
+      </button>
+      @if (editingId()) {
+      <button type="button" class="admin__cancel" (click)="cancelEdit()">Cancelar</button>
+      }
     </form>
 
-    <table class="admin__table">
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>Categoría</th>
-          <th>Precio</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (product of productService.products(); track product.id) {
-        <tr>
-          <td>{{ product.emoji }} {{ product.name }}</td>
-          <td>{{ product.category }}</td>
-          <td>{{ product.price | currency:'EUR' }}</td>
-          <td class="admin__row-actions">
-            <button type="button" (click)="startEdit(product)">✏️</button>
-            <button type="button" (click)="remove(product)">🗑️</button>
-          </td>
-        </tr>
+    <div class="admin__panel admin__list">
+      <div class="admin__list-head">
+        <h2>Listado de productos</h2>
+        <span>{{ filteredProducts().length }} de {{ productService.products().length }} referencias</span>
+      </div>
+
+      <div class="admin__filters">
+        <input type="search" class="admin__search" placeholder="Buscar producto…" aria-label="Buscar producto"
+          [value]="productFilters().q" (input)="setProductFilter({ q: $any($event.target).value })" />
+        <select aria-label="Filtrar por categoría" [value]="productFilters().category"
+          (change)="setProductFilter({ category: $any($event.target).value })">
+          <option value="">Todas las categorías</option>
+          @for (cat of categories; track cat) {
+          <option [value]="cat" [selected]="productFilters().category === cat">{{ cat }}</option>
+          }
+        </select>
+        <input type="number" min="0" step="0.1" placeholder="Precio mín." aria-label="Precio mínimo"
+          [value]="productFilters().min ?? ''" (input)="setProductFilter({ min: toNum($any($event.target).value) })" />
+        <input type="number" min="0" step="0.1" placeholder="Precio máx." aria-label="Precio máximo"
+          [value]="productFilters().max ?? ''" (input)="setProductFilter({ max: toNum($any($event.target).value) })" />
+        @if (hasProductFilters()) {
+        <button type="button" class="admin__clear" (click)="clearProductFilters()">Limpiar</button>
         }
-      </tbody>
-    </table>
+      </div>
+
+      @if (productService.products().length === 0) {
+      <p class="admin__empty">No hay productos todavía.</p>
+      } @else if (filteredProducts().length === 0) {
+      <p class="admin__empty">Ningún producto coincide con los filtros.</p>
+      }
+
+      <ul>
+        @for (product of pagedProducts(); track product.id) {
+        <li class="admin__row">
+          <span class="admin__dot"><app-product-icon [category]="product.category" [imageUrl]="product.imageUrl" [size]="18" [frame]="30" /></span>
+          <span class="admin__row-info">
+            <span class="admin__row-name">{{ product.name }}</span>
+            <span class="admin__row-meta">{{ product.category }}</span>
+          </span>
+          <span class="admin__row-price">{{ product.price | currency:'EUR' }}</span>
+          <span class="admin__row-actions">
+            <button type="button" (click)="startEdit(product)" [attr.aria-label]="'Editar ' + product.name">Editar</button>
+            <button type="button" class="admin__danger" (click)="remove(product)"
+              [attr.aria-label]="'Eliminar ' + product.name">Eliminar</button>
+          </span>
+        </li>
+        }
+      </ul>
+
+      @if (productPages() > 1) {
+      <nav class="admin__pager" aria-label="Paginación de productos">
+        <button type="button" (click)="goToProductPage(productPage() - 1)" [disabled]="productPage() === 1">Anterior</button>
+        <span>Página {{ productPage() }} de {{ productPages() }}</span>
+        <button type="button" (click)="goToProductPage(productPage() + 1)" [disabled]="productPage() === productPages()">Siguiente</button>
+      </nav>
+      }
+    </div>
   </div>
   }
 
   @if (activeTab() === 'pedidos') {
   @if (ordersLoadError()) {
-  <p class="admin__error">{{ ordersLoadError() }}</p>
+  <p class="msg-error">{{ ordersLoadError() }}</p>
   }
 
   @if (orderError()) {
-  <p class="admin__error">{{ orderError() }}</p>
+  <p class="msg-error">{{ orderError() }}</p>
   }
+
+  <div class="admin__filters admin__filters--orders">
+    <input type="search" class="admin__search" placeholder="Buscar por cliente, teléfono, nº o producto…"
+      aria-label="Buscar pedido" [value]="orderFilters().q"
+      (input)="setOrderFilter({ q: $any($event.target).value })" />
+    <select aria-label="Filtrar por estado" [value]="orderFilters().status"
+      (change)="setOrderFilter({ status: $any($event.target).value })">
+      <option value="">Todos los estados</option>
+      @for (st of orderStatuses; track st) {
+      <option [value]="st" [selected]="orderFilters().status === st">{{ st }}</option>
+      }
+    </select>
+    <input type="number" min="0" step="0.1" placeholder="Total mín." aria-label="Total mínimo"
+      [value]="orderFilters().min ?? ''" (input)="setOrderFilter({ min: toNum($any($event.target).value) })" />
+    <input type="number" min="0" step="0.1" placeholder="Total máx." aria-label="Total máximo"
+      [value]="orderFilters().max ?? ''" (input)="setOrderFilter({ max: toNum($any($event.target).value) })" />
+    @if (hasOrderFilters()) {
+    <button type="button" class="admin__clear" (click)="clearOrderFilters()">Limpiar</button>
+    }
+  </div>
 
   @if (orders().length === 0) {
   <p class="admin__empty">Todavía no hay pedidos.</p>
+  } @else if (filteredOrders().length === 0) {
+  <p class="admin__empty">Ningún pedido coincide con los filtros.</p>
   } @else {
-  <table class="admin__table">
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Cliente</th>
-        <th>Pedido</th>
-        <th>Total</th>
-        <th>Estado</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (order of orders(); track order.id) {
-      <tr>
-        <td>{{ order.createdAt | date:'d MMM y, HH:mm' }}</td>
-        <td>{{ order.pickupName }}<br />{{ order.pickupPhone }}</td>
-        <td>
-          @for (item of order.items; track item.productId) {
-          <div>{{ item.name }} × {{ item.quantity }}</div>
-          }
-        </td>
-        <td>{{ order.total | currency:'EUR' }}</td>
-        <td>
-          <select [value]="order.status" (change)="changeStatus(order, $any($event.target).value)">
-            @for (status of orderStatuses; track status) {
-            <option [value]="status" [selected]="status === order.status">{{ status }}</option>
-            }
-          </select>
-        </td>
-      </tr>
-      }
-    </tbody>
-  </table>
+  <div class="admin__orders">
+    @for (order of pagedOrders(); track order.id) {
+    <article class="admin__panel admin__order">
+      <div class="admin__order-id">
+        <span class="admin__mono">KO-{{ order.id }}</span>
+        <span>{{ order.pickupName }} · {{ order.pickupPhone }}</span>
+        <span class="admin__muted">{{ order.createdAt | date:'d MMM · HH:mm' }}</span>
+      </div>
+      <div class="admin__muted admin__order-items">
+        @for (item of order.items; track item.productId) {
+        <div>{{ item.quantity }} × {{ item.name }}</div>
+        }
+      </div>
+      <div class="admin__order-state">
+        <span class="badge badge--{{ statusOf(order) }}">{{ statusOf(order) }}</span>
+        <span class="admin__order-total">{{ order.total | currency:'EUR' }}</span>
+      </div>
+      <div class="admin__order-actions">
+        @for (status of orderStatuses; track status) {
+        <button type="button" [class.on]="statusOf(order) === status"
+          (click)="changeStatus(order, status)">{{ status }}</button>
+        }
+      </div>
+    </article>
+    }
+  </div>
+  @if (orderPages() > 1) {
+  <nav class="admin__pager" aria-label="Paginación de pedidos">
+    <button type="button" (click)="goToOrderPage(orderPage() - 1)" [disabled]="orderPage() === 1">Anterior</button>
+    <span>Página {{ orderPage() }} de {{ orderPages() }} · {{ filteredOrders().length }} pedidos</span>
+    <button type="button" (click)="goToOrderPage(orderPage() + 1)" [disabled]="orderPage() === orderPages()">Siguiente</button>
+  </nav>
+  }
   }
   }
 </section>

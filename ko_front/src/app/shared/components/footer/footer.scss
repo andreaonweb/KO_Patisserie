@@ -1,0 +1,79 @@
+@use '../../../../styles/variables' as *;
+
+.footer {
+  background: $text-dark;
+  color: $border-soft;
+  padding: clamp(48px, 6vw, 80px) $gutter 34px;
+  margin-top: 20px;
+  font-size: 14px;
+  line-height: 1.75;
+
+  a {
+    color: $primary;
+
+    &:hover {
+      color: $cream;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 40px;
+    padding-bottom: 44px;
+    border-bottom: 1px solid rgba(249, 196, 210, 0.28);
+
+    p {
+      margin-bottom: 8px;
+      color: $border;
+    }
+
+    h2 {
+      font-family: $font-main;
+      font-weight: 400;
+      margin-bottom: 18px;
+      font-size: 11px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: $primary;
+    }
+  }
+
+  p.footer__logo {
+    font-family: $font-title;
+    font-size: 27px;
+    letter-spacing: 0.18em;
+    color: $cream;
+    margin-bottom: 4px;
+  }
+
+  p.footer__tag {
+    font-size: 9px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: $primary;
+    margin-bottom: 18px;
+  }
+
+  &__about {
+    max-width: 30ch;
+  }
+
+  &__links {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    align-items: flex-start;
+
+    a {
+      color: $border;
+    }
+  }
+
+  &__legal {
+    margin-top: 26px;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: #d9c6ce;
+  }
+}

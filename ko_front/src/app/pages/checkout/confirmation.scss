@@ -2,54 +2,66 @@
 @use '../../../styles/mixins' as *;
 
 .confirmation {
-  max-width: 480px;
-  margin: 4rem auto;
-  padding: 0 1.5rem;
-  text-align: center;
-
-  &__loading,
-  &__not-found {
-    color: $text-muted;
-  }
-
   &__card {
     @include card;
-    padding: 2rem;
+    max-width: 560px;
+    padding: 40px 34px;
 
     h1 {
-      font-size: 1.6rem;
-      margin-bottom: 0.5rem;
+      font-weight: 300;
+      font-size: clamp(34px, 4vw, 46px);
+      line-height: 1.1;
     }
   }
 
   &__id {
+    margin: 10px 0 24px;
+    font-family: $font-mono;
+    font-size: 12.5px;
     color: $text-muted;
-    margin-bottom: 1.5rem;
   }
 
   &__items {
     list-style: none;
-    text-align: left;
-    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 16px 0;
+    border-block: 1px solid $border;
 
     li {
-      padding: 0.35rem 0;
-      border-bottom: 1px solid $border;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      font-size: 14px;
+      color: $text-muted;
+
+      span:last-child {
+        color: $text-dark;
+      }
     }
   }
 
   &__total {
-    font-weight: 700;
-    margin-bottom: 1.5rem;
+    text-align: right;
+    margin: 16px 0 24px;
+    font-family: $font-title;
+    font-size: 26px;
   }
 
   &__pickup {
     background: $secondary;
-    border-radius: $radius-sm;
-    padding: 1rem;
+    border: 1px solid $border;
+    border-radius: $radius-md;
+    padding: 16px 18px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
 
-    p {
-      margin: 0.15rem 0;
-    }
+  &__label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: $green;
   }
 }

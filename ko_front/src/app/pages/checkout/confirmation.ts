@@ -24,7 +24,7 @@ export class ConfirmationComponent implements OnInit {
     try {
       this.order.set(await this.orderService.getById(id));
     } catch (e: any) {
-      this.error.set('❌ ' + (e.message ?? 'Error al cargar tu pedido'));
+      this.error.set((e.message ?? 'Error al cargar tu pedido'));
     } finally {
       this.loading.set(false);
     }

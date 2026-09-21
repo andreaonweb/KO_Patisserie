@@ -2,164 +2,376 @@
 @use '../../../styles/mixins' as *;
 
 .admin {
-  max-width: 1080px;
-  margin: 3rem auto;
-  padding: 0 1.5rem;
-
   &__header {
-    text-align: center;
-    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 1px solid $border;
+    padding-bottom: 22px;
+    margin-bottom: 30px;
+  }
 
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 0.25rem;
-    }
+  &__eyebrow {
+    color: $rose;
+    margin-bottom: 10px;
+  }
 
-    p {
-      color: $text-muted;
-      margin: 0;
-    }
+  &__title {
+    font-weight: 300;
+    font-size: clamp(34px, 4vw, 54px);
+    line-height: 1;
   }
 
   &__tabs {
     display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    margin-bottom: 1.5rem;
+    gap: 10px;
   }
 
   &__tab {
-    background: transparent;
-    border: 1px solid $border;
-    border-radius: $radius-xl;
-    padding: 0.5rem 1.25rem;
+    border-radius: $radius-pill;
+    padding: 10px 20px;
     cursor: pointer;
-    font-weight: 600;
-    color: $text-muted;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border: 1px solid $border;
+    background: $white;
+    color: $text-dark;
 
     &--active {
-      background: $primary;
-      color: $white;
-      border-color: $primary;
-    }
-  }
-
-  &__empty {
-    text-align: center;
-    color: $text-muted;
-  }
-
-  &__error {
-    background: #fdeceb;
-    color: #c0392b;
-    padding: 0.75rem 1rem;
-    border-radius: $radius-sm;
-    margin-bottom: 1rem;
-  }
-
-  &__seed {
-    @include card;
-    text-align: center;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-
-    p {
-      color: $text-muted;
-      margin-bottom: 1rem;
+      background: $text-dark;
+      border-color: $text-dark;
+      color: $cream;
     }
   }
 
   &__content {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    gap: 1.5rem;
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+    gap: 30px;
     align-items: start;
+  }
 
-    @media (max-width: 800px) {
-      grid-template-columns: 1fr;
+  &__panel {
+    @include card;
+    overflow: hidden;
+
+    h2 {
+      font-size: 24px;
+      font-weight: 500;
     }
   }
 
   &__form {
-    @include card;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    padding: 1.5rem;
-  }
-
-  &__field {
+    padding: 26px 24px;
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-
-    label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: $text-dark;
-    }
-
-    input,
-    select,
-    textarea {
-      border: 1px solid $border;
-      border-radius: $radius-sm;
-      padding: 0.5rem 0.75rem;
-      font-family: $font-main;
-      font-size: 0.9rem;
-    }
-
-    &--full {
-      grid-column: 1 / -1;
-    }
-
-    &--checkbox {
-      flex-direction: row;
-      align-items: center;
-
-      label {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-    }
+    gap: 16px;
   }
 
-  &__actions {
-    grid-column: 1 / -1;
+  &__check {
     display: flex;
-    gap: 0.75rem;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: $text-muted;
   }
 
   &__cancel {
-    background: transparent;
-    border: 1px solid $border;
-    border-radius: $radius-xl;
-    padding: 0.75rem 1.5rem;
+    background: none;
+    border: 0;
     cursor: pointer;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: $text-muted;
+    align-self: flex-start;
   }
 
-  &__table {
-    width: 100%;
-    border-collapse: collapse;
+  &__list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 20px 24px;
+    border-bottom: 1px solid $border;
 
-    th,
-    td {
-      text-align: left;
-      padding: 0.6rem 0.75rem;
-      border-bottom: 1px solid $border;
+    span {
+      font-size: 11.5px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: $text-muted;
     }
+  }
+
+  &__list ul {
+    list-style: none;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    border-bottom: 1px solid $border-soft;
+  }
+
+  &__dot {
+    @include flex-center;
+    color: $rose;
+    width: 32px;
+    height: 32px;
+    flex: none;
+    border-radius: $radius-pill;
+    background: $secondary;
+    border: 1px solid $border;
+    overflow: hidden;
+  }
+
+  &__row-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__row-name {
+    display: block;
+    font-size: 15px;
+  }
+
+  &__row-meta {
+    display: block;
+    font-size: 12px;
+    color: $text-muted;
+  }
+
+  &__row-price,
+  &__mono {
+    font-family: $font-mono;
+    font-size: 13px;
   }
 
   &__row-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 6px;
 
     button {
       background: transparent;
-      border: none;
+      border: 1px solid $border;
+      border-radius: $radius-pill;
+      padding: 7px 14px;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: 10.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: $text-dark;
+
+      &:hover {
+        background: $secondary;
+        border-color: $primary;
+      }
     }
+  }
+
+  &__danger {
+    color: $rose !important;
+  }
+
+  &__empty,
+  &__muted {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: $text-muted;
+  }
+
+  &__empty {
+    padding: 16px 24px;
+  }
+
+  &__orders {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  &__order {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 22px;
+    align-items: center;
+    padding: 22px 26px;
+  }
+
+  &__order-id {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  &__order-state {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  &__order-total {
+    font-family: $font-title;
+    font-size: 22px;
+  }
+
+  &__order-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+
+    button {
+      border-radius: $radius-pill;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 10.5px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border: 1px solid $border;
+      background: $white;
+      color: $text-muted;
+
+      &.on {
+        border-color: $green;
+        background: $accent-light;
+        color: $green-dark;
+      }
+    }
+  }
+}
+
+@media (max-width: 820px) {
+  .admin__content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin__pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 24px;
+
+  span {
+    font-size: 11.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: $text-muted;
+  }
+
+  button {
+    background: transparent;
+    border: 1px solid $border;
+    border-radius: $radius-pill;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: $text-dark;
+
+    &:hover:not(:disabled) {
+      background: $secondary;
+      border-color: $primary;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.admin__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 24px;
+  border-bottom: 1px solid $border;
+  background: $cream;
+
+  &--orders {
+    @include card;
+    border-bottom: 1px solid $border;
+    margin-bottom: 14px;
+  }
+
+  input,
+  select {
+    font-size: 13.5px;
+    color: $text-dark;
+    background: $white;
+    border: 1px solid $border;
+    border-radius: $radius-pill;
+    padding: 9px 14px;
+    min-width: 0;
+  }
+
+  input[type='number'] {
+    width: 116px;
+  }
+
+  select {
+    text-transform: capitalize;
+  }
+}
+
+.admin__search {
+  flex: 1 1 200px;
+}
+
+.admin__clear {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $rose;
+  text-decoration: underline;
+}
+
+.admin__preview {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+}
+
+.admin__photo-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin__upload {
+  display: inline-flex;
+  cursor: pointer;
+  padding: 9px 18px;
+  border: 1px solid $accent;
+  border-radius: $radius-pill;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: $green;
+
+  &:hover {
+    background: $accent-light;
+  }
+
+  &--busy {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  input {
+    display: none;
   }
 }

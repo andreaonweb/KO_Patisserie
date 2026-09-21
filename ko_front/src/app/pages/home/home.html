@@ -1,108 +1,90 @@
-<section class="hero">
-  <div class="hero__petals" aria-hidden="true">
-    <span>🌸</span><span>🌸</span><span>🌸</span>
-    <span>🌸</span><span>🌸</span><span>🌸</span>
-  </div>
-
-  <div class="hero__content">
-    <p class="hero__sub">🌸 Bienvenida a</p>
-    <h1 class="hero__title">Shirayuki Pâtisserie</h1>
-    <p class="hero__tagline">桜パティスリー</p>
-
-    <div class="hero__gallery">
-      <div class="hero__gallery-item">
-        <img src="images/mochi.jpg" alt="Mochi artesanal" />
-      </div>
-      <div class="hero__gallery-item hero__gallery-item--lg">
-        <img src="images/daifuku.jpg" alt="Daifuku de fresa" />
-      </div>
-      <div class="hero__gallery-item">
-        <img src="images/matcha.jpg" alt="Dulces de matcha" />
+<div class="home">
+  <section class="hero">
+    <div class="hero__content">
+      <p class="eyebrow">Obrador japonés · francés</p>
+      <h1 class="hero__title">Dulces que<br /><em>florecen</em> despacio</h1>
+      <p class="hero__desc">
+        Cada pieza se elabora a mano cada mañana, con matcha de Uji, sakura de temporada y mantequilla francesa.
+        Sin conservantes, sin prisa.
+      </p>
+      <div class="hero__actions">
+        <a routerLink="/menu" class="btn-primary">Ver nuestra carta</a>
+        <button type="button" class="btn-ghost" (click)="scrollToStops()">Cómo llegar</button>
       </div>
     </div>
+    <div class="hero__gallery">
+      <div class="hero__photo hero__photo--main"><img src="images/daifuku.jpg" alt="Daifuku de fresa recién hecho" /></div>
+      <div class="hero__photo hero__photo--a"><img src="images/mochi.jpg" alt="Mochi artesanal" /></div>
+      <div class="hero__photo hero__photo--b"><img src="images/matcha.jpg" alt="Dulces de matcha" /></div>
+    </div>
+  </section>
 
-    <p class="hero__desc">
-      Dulces japoneses artesanales hechos con amor,<br>
-      flores de cerezo y un toque de magia kawaii. ✨
-    </p>
-    <a routerLink="/menu" class="btn-primary">Ver nuestra carta 🍡</a>
-  </div>
-</section>
+  <section class="principles" aria-label="Nuestros principios">
+    <article>
+      <span class="principles__dot principles__dot--green"><lucide-icon [name]="Leaf" [size]="18" [strokeWidth]="1.5" aria-hidden="true" /></span>
+      <h2>Ingredientes naturales</h2>
+      <p>Matcha ceremonial de Uji, azuki de Hokkaidō y fruta de temporada. Sin colorantes ni aromas artificiales.</p>
+    </article>
+    <article>
+      <span class="principles__dot principles__dot--pink"><lucide-icon [name]="HandHeart" [size]="18" [strokeWidth]="1.5" aria-hidden="true" /></span>
+      <h2>Artesanal</h2>
+      <p>Masas laminadas a mano en tandas pequeñas. Lo que sale del horno por la mañana se vende ese mismo día.</p>
+    </article>
+    <article>
+      <span class="principles__dot principles__dot--gold"><lucide-icon [name]="Package" [size]="18" [strokeWidth]="1.5" aria-hidden="true" /></span>
+      <h2>Packaging</h2>
+      <p>Cajas de cartón reciclado y cordel de algodón, plegadas en tienda. Cero plástico en toda la cadena.</p>
+    </article>
+  </section>
 
-<section class="features">
-  <div class="feature">
-    <span>🌿</span>
-    <h3>Ingredientes naturales</h3>
-    <p>Matcha, yuzu y anko traídos directamente de Japón.</p>
-  </div>
-  <div class="feature">
-    <span>👩‍🍳</span>
-    <h3>Artesanal</h3>
-    <p>Cada pieza moldeada a mano con cariño y paciencia.</p>
-  </div>
-  <div class="feature">
-    <span>🎁</span>
-    <h3>Packaging kawaii</h3>
-    <p>Cajas y lazos perfectos para regalar felicidad.</p>
-  </div>
-</section>
+  <section id="como-llegar" class="nearby">
+    <div class="nearby__info">
+      <p class="eyebrow">Visítanos</p>
+      <h2 class="nearby__title">Cómo llegar</h2>
+      <p class="nearby__address">Consell de Cent, 321 · Barcelona</p>
+      <p class="nearby__hours">Martes a domingo, 8:30 – 20:00</p>
 
-<section class="nearby-buses">
-  <div class="nearby-buses__header">
-    <h2>🚌 Cómo llegar</h2>
-    <p>Paradas de bus cercanas a nuestra pastelería</p>
-    <p class="nearby-buses__address">📍 Consell de Cent, 321 · Barcelona</p>
-  </div>
+      <button type="button" class="btn-ghost" [disabled]="busService.loading()" (click)="busService.loadNearbyStops()">
+        {{ busService.loading() ? 'Buscando…' : busService.stops().length ? 'Actualizar paradas' : 'Ver paradas cercanas' }}
+      </button>
 
-  @if (!busService.loading() && busService.stops().length === 0) {
-  <div class="nearby-buses__cta">
-    <button class="btn-primary" (click)="busService.loadNearbyStops()">
-      Ver paradas cercanas 🗺️
-    </button>
-  </div>
-  }
+      @if (busService.error()) {
+      <p class="msg-error nearby__note">{{ busService.error() }}</p>
+      }
+    </div>
 
-  @if (busService.loading()) {
-  <p class="nearby-buses__loading">🌸 Buscando paradas...</p>
-  }
+    <div class="nearby__stops">
+      @if (busService.stops().length > 0) {
+      <ul class="stop-list">
+        @for (stop of busService.stops(); track stop.id) {
+        <li class="stop-card">
+          <div class="stop-card__header">
+            <div>
+              <p class="stop-card__name">{{ stop.name }}</p>
+              <p class="stop-card__address">{{ stop.address }}</p>
+            </div>
+            <span class="stop-card__dist">{{ stop.distanceMeters }} m</span>
+          </div>
 
-  @if (busService.error()) {
-  <p class="nearby-buses__error">⚠️ {{ busService.error() }}</p>
-  }
-
-  @if (busService.stops().length > 0) {
-  <ul class="stop-list">
-    @for (stop of busService.stops(); track stop.id) {
-    <li class="stop-card">
-      <div class="stop-card__header">
-        <span class="stop-card__icon">🚏</span>
-        <div>
-          <p class="stop-card__name">{{ stop.name }}</p>
-          <p class="stop-card__address">{{ stop.address }} · {{ stop.distanceMeters }}m</p>
-        </div>
-      </div>
-
-      @if (stop.loadingArrivals) {
-      <p class="stop-card__loading">Cargando...</p>
-      } @else if (stop.arrivals.length === 0) {
-      <p class="stop-card__empty">Sin datos en este momento</p>
-      } @else {
-      <ul class="arrival-list">
-        @for (arrival of stop.arrivals; track arrival.lineName + arrival.minutesAway) {
-        <li class="arrival">
-          <span class="arrival__line" [class.arrival__line--amb]="arrival.operator === 'amb'">
-            {{ arrival.lineName }}
-          </span>
-          <span class="arrival__dest">{{ arrival.destination }}</span>
-          <span class="arrival__time">
-            {{ arrival.minutesAway === 0 ? 'Ahora' : arrival.minutesAway + ' min' }}
-          </span>
+          @if (stop.loadingArrivals) {
+          <p class="stop-card__note">Cargando…</p>
+          } @else if (stop.arrivals.length === 0) {
+          <p class="stop-card__note">Sin datos en este momento</p>
+          } @else {
+          <ul class="arrival-list">
+            @for (arrival of stop.arrivals; track arrival.lineName + arrival.minutesAway) {
+            <li class="arrival">
+              <span class="arrival__line" [class.arrival__line--amb]="arrival.operator === 'amb'">{{ arrival.lineName }}</span>
+              <span class="arrival__dest">{{ arrival.destination }}</span>
+              <span class="arrival__time">{{ arrival.minutesAway === 0 ? 'Ahora' : arrival.minutesAway + ' min' }}</span>
+            </li>
+            }
+          </ul>
+          }
         </li>
         }
       </ul>
       }
-    </li>
-    }
-  </ul>
-  }
-</section>
+    </div>
+  </section>
+</div>

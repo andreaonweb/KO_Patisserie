@@ -23,6 +23,7 @@ class Product(Base):
     price: Mapped[float] = mapped_column(Float)
     description: Mapped[str] = mapped_column(String)
     emoji: Mapped[str] = mapped_column(String)
+    image_url: Mapped[str | None] = mapped_column(String, nullable=True)
     category: Mapped[ProductCategory] = mapped_column(Enum(ProductCategory, values_callable=lambda e: [m.value for m in e]))
     is_new: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())

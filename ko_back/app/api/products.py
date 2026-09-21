@@ -17,6 +17,7 @@ def _to_response(product: Product) -> ProductResponse:
         price=product.price,
         description=product.description,
         emoji=product.emoji,
+        image_url=product.image_url,
         category=product.category,
         is_new=product.is_new,
         created_at=product.created_at,

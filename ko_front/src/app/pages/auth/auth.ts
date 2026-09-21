@@ -2,6 +2,11 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 
+const DEMO_ACCOUNTS = {
+  admin: { email: 'admin@email.com', password: 'admin123' },
+  customer: { email: 'cliente@email.com', password: 'cliente123' },
+} as const;
+
 @Component({
   selector: 'app-auth',
   standalone: true,
@@ -23,10 +28,12 @@ export class AuthComponent {
     this.error.set('');
   }
 
-  fillDemoAccount(): void {
+  async demoLogin(role: 'admin' | 'customer'): Promise<void> {
     this.isLogin.set(true);
-    this.email = 'admin@email.com';
-    this.password = 'admin123';
+    const demo = DEMO_ACCOUNTS[role];
+    this.email = demo.email;
+    this.password = demo.password;
+    await this.submit();
   }
 
   async submit(): Promise<void> {
@@ -39,7 +46,7 @@ export class AuthComponent {
         await this.auth.register(this.email, this.password);
       }
     } catch (e: any) {
-      this.error.set('❌ ' + (e.message ?? 'Error desconocido'));
+      this.error.set((e.message ?? 'Error desconocido'));
     } finally {
       this.loading.set(false);
     }

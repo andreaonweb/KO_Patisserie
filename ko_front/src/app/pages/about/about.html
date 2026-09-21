@@ -1,33 +1,19 @@
-<section class="about">
-    <div class="about__hero">
-        <span>🌸</span>
-        <h1>Nuestra Historia</h1>
-        <p>Nacimos en Kioto, crecimos en Barcelona</p>
-    </div>
+<div class="about">
+  <section class="page about__story">
+    <p class="eyebrow">Nosotros</p>
+    <h1 class="page-title">Nuestra historia</h1>
+    <p>KŌ nació de juntar dos oficios que parecían no tocarse: el wagashi, con la paciencia de la repostería japonesa tradicional, y la pastelería francesa, con sus masas laminadas y su mantequilla.</p>
+    <p>La primera pieza fue un mille-feuille de sakura que vendimos en un mercado de barrio un sábado de abril. Se agotó en dos horas. La segunda vez trajimos el doble y pasó lo mismo.</p>
+    <p>Seguimos horneando en tandas pequeñas y cerrando cuando se acaba, porque creemos que un dulce hecho con calma sabe distinto.</p>
+  </section>
 
-    <div class="about__content">
-        <div class="about__text">
-            <h2>愛を込めて · Con amor</h2>
-            <p>
-                Sakura Pâtisserie nació del sueño de traer la delicadeza de la
-                repostería japonesa a Europa. Cada dulce cuenta una historia:
-                la paciencia del wagashi, los colores de los cerezos en flor,
-                la calidez de una taza de matcha.
-            </p>
-            <p>
-                Usamos solo ingredientes auténticos importados de Japón,
-                combinados con productos locales de temporada.
-                Sin prisas. Sin atajos. Solo amor. 🎀
-            </p>
-        </div>
-        <div class="about__values">
-            @for (v of values; track v.title) {
-            <div class="value">
-                <span>{{ v.emoji }}</span>
-                <strong>{{ v.title }}</strong>
-                <p>{{ v.desc }}</p>
-            </div>
-            }
-        </div>
+  <section class="about__values" aria-label="Nuestros valores">
+    @for (v of values; track v.title) {
+    <div class="about__value">
+      <span class="about__value-icon"><lucide-icon [name]="v.icon" [size]="20" [strokeWidth]="1.5" aria-hidden="true" /></span>
+      <h2>{{ v.title }}</h2>
+      <p>{{ v.desc }}</p>
     </div>
-</section>
+    }
+  </section>
+</div>

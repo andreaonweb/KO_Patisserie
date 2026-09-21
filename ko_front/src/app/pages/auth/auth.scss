@@ -3,142 +3,74 @@
 
 .auth {
   @include flex-center;
-  min-height: 80vh;
-  background: linear-gradient(135deg, $secondary 0%, $cream 50%, $accent-light 100%);
+  padding: clamp(40px, 6vw, 88px) 20px;
+  @include fade-in;
 
   &__card {
-    @include card;
-    padding: 3rem 2.5rem;
-    width: 100%;
-    max-width: 420px;
-    text-align: center;
-    @include fade-in;
-  }
-
-  &__icon {
-    font-size: 3rem;
-    animation: float 3s ease-in-out infinite;
+    width: min(400px, 100%);
+    background: $cream;
+    border: 1px solid $border;
+    border-radius: $radius-lg;
+    padding: 36px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
   }
 
   &__title {
-    font-size: 1.8rem;
-    margin: 0.75rem 0 0.25rem;
+    font-size: 30px;
   }
 
-  &__sub {
+  &__demo,
+  &__toggle {
+    font-size: 12.5px;
+    line-height: 1.6;
     color: $text-muted;
-    margin-bottom: 2rem;
-    font-size: 0.95rem;
-  }
 
-  &__form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    text-align: left;
-  }
-
-  &__demo {
-    background: $secondary;
-    border: 1px dashed $border;
-    border-radius: $radius-sm;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1.5rem;
-    text-align: center;
-
-    p {
-      font-size: 0.82rem;
+    strong {
       color: $text-dark;
-      margin: 0 0 0.5rem;
     }
   }
 
-  &__demo-btn {
-    background: transparent;
-    border: 1.5px solid $primary;
-    border-radius: $radius-xl;
-    padding: 0.4rem 1rem;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: darken($primary, 20%);
+  &__link {
+    background: none;
+    border: 0;
+    padding: 0;
     cursor: pointer;
-    transition: background 0.15s ease;
+    font-size: inherit;
+    color: $rose;
+    text-decoration: underline;
 
     &:hover {
-      background: $primary;
       color: $text-dark;
     }
   }
-
-  &__error {
-    background: #fde8e8;
-    color: #c0392b;
-    padding: 0.6rem 1rem;
-    border-radius: $radius-sm;
-    font-size: 0.85rem;
-    font-weight: 600;
-  }
-
-  &__toggle {
-    text-align: center;
-    font-size: 0.88rem;
-    color: $text-muted;
-    margin-top: 0.5rem;
-
-    span {
-      color: darken($primary, 20%);
-      font-weight: 700;
-      cursor: pointer;
-      margin-left: 0.3rem;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-  }
 }
 
-.field {
+.auth__demo {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid $border;
 
-  label {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: $text-dark;
+  p {
+    padding-top: 14px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: $text-muted;
   }
 
-  input {
-    padding: 0.75rem 1rem;
-    border: 1.5px solid $border;
-    border-radius: $radius-md;
-    font-size: 0.95rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    background: $cream;
-    color: $text-dark;
+  &-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 
-    &::placeholder {
-      color: lighten($text-muted, 15%);
+    .btn-ghost {
+      flex: 1 1 140px;
+      padding: 12px 16px;
+      font-size: 11px;
     }
-
-    &:focus {
-      outline: none;
-      border-color: $primary;
-      box-shadow: 0 0 0 3px rgba(249, 196, 210, 0.25);
-    }
-  }
-}
-
-.btn-submit {
-  @include btn-primary;
-  width: 100%;
-  margin-top: 0.5rem;
-  padding: 0.85rem;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
   }
 }

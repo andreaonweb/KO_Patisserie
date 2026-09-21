@@ -1,24 +1,30 @@
-// === COLORES ===
+// === COLORES (KŌ Pâtisserie) ===
 $primary: #f9c4d2; // rosa sakura
+$primary-border: #efaec1;
+$primary-hover: #f6b3c5;
 $secondary: #fde8f0; // rosa pálido
+$rose: #a35d76;
+$rose-dark: #8c4a62;
+$green: #3f6b57;
+$green-dark: #2f5a46;
 $accent: #b5d5c5; // verde menta
 $accent-light: #e8f5ee;
 $cream: #fffaf5;
 $text-dark: #4a3f3f;
-$text-muted: #9e8e8e;
+$text-muted: #6f6060;
+$ink-hover: #2f2727;
 $white: #ffffff;
 $border: #f0dde5;
+$border-soft: #f7ecec;
 
 // === TIPOGRAFÍA ===
-$font-main: 'Nunito', sans-serif;
-$font-title: 'Playfair Display', serif;
+$font-main: 'Jost', system-ui, sans-serif;
+$font-title: 'Cormorant Garamond', serif;
+$font-mono: ui-monospace, Menlo, monospace;
 
 // === ESPACIADO ===
-$radius-sm: 8px;
-$radius-md: 16px;
-$radius-lg: 24px;
-$radius-xl: 40px;
-
-// === SOMBRAS ===
-$shadow-soft: 0 4px 20px rgba(249, 196, 210, 0.3);
-$shadow-card: 0 8px 32px rgba(249, 196, 210, 0.2);
+$radius-sm: 4px;
+$radius-md: 6px;
+$radius-lg: 8px;
+$radius-pill: 999px;
+$gutter: clamp(18px, 4vw, 56px);

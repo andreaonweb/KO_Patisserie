@@ -1,25 +1,26 @@
-<section class="confirmation">
+<section class="page confirmation">
   @if (loading()) {
-  <p class="confirmation__loading">Cargando tu pedido…</p>
+  <p class="lead">Cargando tu pedido…</p>
   } @else if (error()) {
-  <p class="confirmation__not-found">{{ error() }}</p>
+  <p class="msg-error">{{ error() }}</p>
   } @else if (!order()) {
-  <p class="confirmation__not-found">No encontramos ese pedido 🌸</p>
+  <p class="lead">No encontramos ese pedido.</p>
   } @else {
   <div class="confirmation__card">
-    <h1>¡Gracias por tu pedido! 🌸</h1>
-    <p class="confirmation__id">Pedido #{{ order()!.id }}</p>
+    <p class="eyebrow">Pedido confirmado</p>
+    <h1>Gracias por tu pedido</h1>
+    <p class="confirmation__id">KO-{{ order()!.id }}</p>
 
     <ul class="confirmation__items">
       @for (item of order()!.items; track item.productId) {
-      <li>{{ item.name }} × {{ item.quantity }} — {{ item.price * item.quantity | currency:'EUR' }}</li>
+      <li><span>{{ item.quantity }} × {{ item.name }}</span><span>{{ item.price * item.quantity | currency:'EUR' }}</span></li>
       }
     </ul>
 
-    <p class="confirmation__total">Total: {{ order()!.total | currency:'EUR' }}</p>
+    <p class="confirmation__total">{{ order()!.total | currency:'EUR' }}</p>
 
     <div class="confirmation__pickup">
-      <p><strong>Retiro en tienda</strong></p>
+      <p class="confirmation__label">Retiro en tienda</p>
       <p>{{ order()!.pickupName }} · {{ order()!.pickupPhone }}</p>
       <p>{{ order()!.pickupTime }}</p>
     </div>
