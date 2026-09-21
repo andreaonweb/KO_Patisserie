@@ -5,6 +5,7 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { catchError, of } from 'rxjs';
 import { ProductService } from '../../core/services/product.service';
 import { OrderService } from '../../core/services/order.service';
+import { formatPickupTime } from '../../core/utils/pickup-slots';
 import { Product } from '../../core/models/product.model';
 import { ProductIconComponent } from '../../shared/components/product-icon/product-icon';
 import type { Order, OrderStatus } from '../../core/models/order.model';
@@ -62,6 +63,7 @@ export class AdminComponent {
 
   readonly categories: Product['category'][] = ['mochi', 'donut', 'cake', 'drink'];
 
+  readonly formatPickupTime = formatPickupTime;
   readonly pageSize = 8;
 
   productFilters = signal<ProductFilters>({ q: '', category: '', min: null, max: null });

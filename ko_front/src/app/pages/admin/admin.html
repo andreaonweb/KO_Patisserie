@@ -178,7 +178,8 @@
       <div class="admin__order-id">
         <span class="admin__mono">KO-{{ order.id }}</span>
         <span>{{ order.pickupName }} · {{ order.pickupPhone }}</span>
-        <span class="admin__muted">{{ order.createdAt | date:'d MMM · HH:mm' }}</span>
+        <span class="admin__pickup">Retiro: {{ formatPickupTime(order.pickupTime) }}</span>
+        <span class="admin__muted">Pedido el {{ order.createdAt | date:'d MMM · HH:mm' }}</span>
       </div>
       <div class="admin__muted admin__order-items">
         @for (item of order.items; track item.productId) {

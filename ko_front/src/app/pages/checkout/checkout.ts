@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { CartService } from '../../core/services/cart.service';
 import { ProductIconComponent } from '../../shared/components/product-icon/product-icon';
 import { OrderService } from '../../core/services/order.service';
+import { availableDays, slotsForDay } from '../../core/utils/pickup-slots';
 
 @Component({
   selector: 'app-checkout',
@@ -23,6 +24,10 @@ export class CheckoutComponent implements OnInit {
   error = signal('');
   saving = signal(false);
 
+  pickupDays = availableDays();
+  selectedDay = signal(this.pickupDays[0]?.value ?? '');
+  pickupSlots = computed(() => slotsForDay(this.selectedDay()));
+
   form = this.fb.nonNullable.group({
     pickupName: ['', Validators.required],
     pickupPhone: ['', Validators.required],
@@ -33,6 +38,11 @@ export class CheckoutComponent implements OnInit {
     if (this.cart.itemCount() === 0) {
       this.router.navigate(['/menu']);
     }
+  }
+
+  selectDay(day: string): void {
+    this.selectedDay.set(day);
+    this.form.controls.pickupTime.reset('');
   }
 
   async submit(): Promise<void> {

@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { OrderService } from '../../core/services/order.service';
+import { formatPickupTime } from '../../core/utils/pickup-slots';
 import type { Order } from '../../core/models/order.model';
 
 @Component({
@@ -15,6 +16,7 @@ export class ConfirmationComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private orderService = inject(OrderService);
 
+  readonly formatPickupTime = formatPickupTime;
   order = signal<Order | undefined>(undefined);
   loading = signal(true);
   error = signal('');

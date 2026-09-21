@@ -81,7 +81,7 @@ describe('CheckoutComponent', () => {
   });
 
   it('submit() creates the order from the cart and form, clears the cart, and navigates to confirmation', async () => {
-    component.form.setValue({ pickupName: 'Ana', pickupPhone: '600111222', pickupTime: 'Hoy 18:00' });
+    component.form.setValue({ pickupName: 'Ana', pickupPhone: '600111222', pickupTime: '2026-09-22T18:00' });
 
     await component.submit();
 
@@ -89,7 +89,7 @@ describe('CheckoutComponent', () => {
       items: [{ productId: 1, quantity: 2 }],
       pickupName: 'Ana',
       pickupPhone: '600111222',
-      pickupTime: 'Hoy 18:00',
+      pickupTime: '2026-09-22T18:00',
     });
     expect(cart.clear).toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledWith(['/checkout/confirmacion', 1]);
@@ -97,7 +97,7 @@ describe('CheckoutComponent', () => {
 
   it('submit() shows an error and does not clear the cart when the order fails to save', async () => {
     orderService.create.mockRejectedValue(new Error('network down'));
-    component.form.setValue({ pickupName: 'Ana', pickupPhone: '600111222', pickupTime: 'Hoy 18:00' });
+    component.form.setValue({ pickupName: 'Ana', pickupPhone: '600111222', pickupTime: '2026-09-22T18:00' });
 
     await component.submit();
 
