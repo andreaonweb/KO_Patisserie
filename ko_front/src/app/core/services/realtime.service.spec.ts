@@ -167,6 +167,28 @@ describe('RealtimeService', () => {
     expect(reconnected).toHaveBeenCalledTimes(1);
   });
 
+  it('ignores frames from a stale socket after logout', () => {
+    const { service, user, login } = setup();
+    const seen: ServerEvent[] = [];
+    const reconnected = vi.fn();
+    service.events$.subscribe(e => seen.push(e));
+    service.reconnected$.subscribe(reconnected);
+    login();
+    const old = last();
+    user.set(undefined);
+    TestBed.tick();
+
+    old.open();
+    old.receive({ type: 'ready', user: { id: 1, role: 'customer' } });
+    expect(service.status()).toBe('closed');
+    expect(seen).toHaveLength(0);
+
+    login();
+    last().open();
+    last().receive({ type: 'ready', user: { id: 1, role: 'customer' } });
+    expect(reconnected).not.toHaveBeenCalled();
+  });
+
   it('send() only writes when the connection is open', () => {
     const { service, login } = setup();
     login();

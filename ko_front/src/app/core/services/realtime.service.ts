@@ -70,6 +70,8 @@ export class RealtimeService {
     const socket = this.socket;
     this.socket = null;
     if (socket) {
+      socket.onopen = null;
+      socket.onmessage = null;
       socket.onclose = null;
       socket.close();
     }
