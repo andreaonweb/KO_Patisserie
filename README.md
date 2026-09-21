@@ -4,7 +4,7 @@ Aplicación web de una pastelería japonesa-francesa: los clientes consultan la 
 
 Es un monorepo con dos aplicaciones:
 
-- **`ko_front`**: interfaz en **Angular 21** (componentes standalone y señales).
+- **`ko_front`**: interfaz en **Angular 21** (componentes standalone y signals).
 - **`ko_back`**: API en **FastAPI** con **PostgreSQL**.
 
 ---
@@ -35,47 +35,38 @@ Es un monorepo con dos aplicaciones:
 ## Capturas
 
 ### Inicio
-Portada con la propuesta de la casa, tres fotografías en círculos de distinto tamaño y el botón flotante **¿Necesitas ayuda?** (solo para clientes con sesión iniciada).
 
 ![Inicio](docs/capturas/inicio.jpg)
 
 ### Carta
-Dos apartados, **Dulces** y **Bebidas**, cada uno con su título, su número de productos y su propio paginador (como máximo **dos filas** por página, calculadas según el ancho de la pantalla). Buscador, filtro por categoría y precio máximo.
 
 ![Carta](docs/capturas/carta.jpg)
 
 ### Cómo llegar
-Dirección, horario y paradas de autobús cercanas con los próximos pasos en tiempo real (API iTransit de TMB).
 
 ![Cómo llegar](docs/capturas/como-llegar.jpg)
 
 ### Mis pedidos
-Historial del cliente con el estado de cada pedido. Cuando el administrador cambia el estado, se actualiza al instante, sin recargar.
 
 ![Mis pedidos](docs/capturas/mis-pedidos.jpg)
 
 ### Chat de ayuda (cliente)
-Panel de conversación con la tienda, disponible solo para clientes con sesión iniciada.
 
 ![Chat de ayuda del cliente](docs/capturas/chat-cliente.jpg)
 
-### Panel de administración
-Tres pestañas: **Productos**, **Pedidos** y **Chat**.
-
-**Productos** — alta, edición y borrado, con subida de foto, buscador, filtros y paginación.
+### Panel de administración: productos
 
 ![Admin: productos](docs/capturas/admin-productos.jpg)
 
-**Pedidos** — cliente, teléfono, productos, **hora de retiro** y cambio de estado con un clic (pendiente, listo, entregado). Buscador y filtros por estado y por total.
+### Panel de administración: pedidos
 
 ![Admin: pedidos](docs/capturas/admin-pedidos.jpg)
 
-**Chat** — lista de conversaciones con contador de no leídos y respuesta en tiempo real.
+### Panel de administración: chat
 
 ![Admin: chat](docs/capturas/admin-chat.jpg)
 
 ### Diseño adaptable
-En pantallas estrechas las pestañas de la barra se sustituyen por un botón de **hamburguesa**, a la izquierda del logo, que abre un menú lateral.
 
 <img src="docs/capturas/responsive-movil.jpg" alt="Versión móvil con el menú de hamburguesa" width="260">
 
@@ -107,7 +98,7 @@ En pantallas estrechas las pestañas de la barra se sustituyen por un botón de 
 
 | Capa | Tecnología |
 |---|---|
-| Interfaz | Angular 21 (standalone, señales), RxJS, TypeScript 5.9, `lucide-angular` (iconos), SCSS |
+| Interfaz | Angular 21 (standalone, signals), RxJS, TypeScript 5.9, `lucide-angular` (iconos), SCSS |
 | Tipografías | Cormorant Garamond y Jost (Google Fonts) |
 | API | FastAPI, Pydantic, SQLAlchemy 2 (síncrono), Alembic |
 | Base de datos | PostgreSQL 16 (Docker); SQLite en memoria en los tests |
@@ -124,7 +115,7 @@ En pantallas estrechas las pestañas de la barra se sustituyen por un botón de 
 ```
 ┌────────────────────── Navegador (Angular) ──────────────────────┐
 │  Páginas y componentes                                          │
-│     ↕ señales                                                   │
+│     ↕ signals                                                   │
 │  Servicios: Auth · Product · Order · Cart · Chat · Bus          │
 │  RealtimeService  ── único código que toca el WebSocket         │
 └──────────┬──────────────────────────────┬───────────────────────┘
@@ -157,7 +148,7 @@ En pantallas estrechas las pestañas de la barra se sustituyen por un botón de 
 ```
 ko_patisserie/
 ├── README.md                     Este documento
-├── .gitignore                    Ignora dependencias, compilados y carpetas locales
+├── .gitignore                    Ignora dependencias, compilados, carpetas locales y environment.ts
 ├── docs/
 │   ├── accessibility.md          Auditoría y guía de accesibilidad (WCAG 2.2 AA)
 │   ├── capturas/                 Capturas de pantalla usadas en este README
@@ -226,7 +217,7 @@ ko_front/
 └── src/
     ├── index.html                Página base (idioma y título)
     ├── main.ts                   Arranque
-    ├── environments/             Configuración: URL de la API y claves de TMB
+    ├── environments/             Configuración: environment.example.ts (plantilla) y environment.ts (local, no se versiona)
     ├── styles/
     │   ├── variables.scss             Paleta y medidas (colores accesibles)
     │   ├── mixins.scss                Mezclas y animaciones reutilizables
@@ -304,10 +295,17 @@ La API queda en <http://localhost:8000> (documentación interactiva en `/docs`).
 ```bash
 cd ko_front
 npm install
+cp src/environments/environment.example.ts src/environments/environment.ts
 npm start                                  # http://localhost:4200
 ```
 
-Para las paradas de autobús, pon tus claves de TMB en `src/environments/environment.ts` (hay una plantilla en `environment.example.ts`). Sin ellas la web funciona igual, pero las paradas salen con "Sin datos en este momento".
+`environment.ts` **no se versiona** (está en `.gitignore`): créalo a partir de la plantilla y pon en él tus claves de TMB para las paradas de autobús.
+
+```bash
+cp src/environments/environment.example.ts src/environments/environment.ts
+```
+
+Sin las claves la web funciona igual, pero las paradas salen con "Sin datos en este momento".
 
 ### 4. Cuentas de demostración
 
@@ -335,7 +333,7 @@ No hay un script que cargue productos: la carta empieza vacía. Entra como admin
 | `DATABASE_URL` | `postgresql+psycopg://ko:ko@localhost:5434/ko_patisserie` | Conexión a PostgreSQL |
 | `JWT_SECRET` | `dev-secret-change-in-production-please` | Clave para firmar los tokens. **Cámbiala en producción.** |
 
-### Interfaz (`ko_front/src/environments/environment.ts`)
+### Interfaz (`ko_front/src/environments/environment.ts`, se crea desde `environment.example.ts`)
 
 | Campo | Para qué sirve |
 |---|---|
@@ -482,7 +480,6 @@ En `docs/superpowers/` está el diseño (`specs/`) y el plan de implementación 
 
 - **Un solo proceso de API.** El registro de conexiones del WebSocket está en memoria. Para varios procesos habría que sustituirlo por Redis (Pub/Sub); la interfaz del gestor está pensada para poder hacerlo sin tocar el resto.
 - **Orígenes fijos.** `http://localhost:4200` está escrito en `origins.py`. Hay que hacerlo configurable antes de desplegar fuera de local; con otro origen el WebSocket se rechazaría y el front reintentaría sin fin.
-- **Claves de TMB dentro del repositorio.** `ko_front/src/environments/environment.ts` está versionado y contiene las credenciales de TMB. Lo recomendable es dejar de versionarlo (usando `environment.example.ts` como plantilla), **regenerar las claves** y valorar limpiar el historial.
 - **Sin carga inicial de productos.** Falta un script que cree productos de ejemplo.
 - **Sin notificaciones fuera de la web**: no hay avisos por correo ni notificaciones del navegador si la pestaña está cerrada.
 - **Chat**: sin archivos adjuntos, sin indicador de "escribiendo…", y las conversaciones no se asignan a un administrador concreto.
