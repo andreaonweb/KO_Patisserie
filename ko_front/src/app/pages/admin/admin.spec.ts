@@ -75,19 +75,17 @@ describe('AdminComponent', () => {
       name: 'Mochi de Fresa',
       price: 3.5,
       description: 'Tierno mochi.',
-      emoji: '🍓',
       category: 'mochi',
       isNew: false,
     });
     expect(component.form.valid).toBe(true);
   });
 
-  it('submit() calls productService.create with the form value when not editing', async () => {
+  it('submit() calls productService.create with the form value and an empty emoji when not editing', async () => {
     component.form.setValue({
       name: 'Mochi de Fresa',
       price: 3.5,
       description: 'Tierno mochi relleno de anko y fresas frescas.',
-      emoji: '🍓',
       category: 'mochi',
       isNew: false,
     });
@@ -98,14 +96,14 @@ describe('AdminComponent', () => {
       name: 'Mochi de Fresa',
       price: 3.5,
       description: 'Tierno mochi relleno de anko y fresas frescas.',
-      emoji: '🍓',
+      emoji: '',
       category: 'mochi',
       isNew: false,
     });
     expect(component.editingId()).toBeNull();
   });
 
-  it('startEdit() patches the form and submit() calls productService.update', async () => {
+  it('startEdit() patches the form and submit() calls productService.update, preserving the original emoji', async () => {
     component.startEdit(SAMPLE_PRODUCT);
 
     expect(component.editingId()).toBe(1);

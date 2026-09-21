@@ -20,81 +20,73 @@
   <p class="admin__seed">No hay productos todavía.</p>
   }
 
-  <form class="admin__form" [formGroup]="form" (ngSubmit)="submit()">
-    <div class="admin__field">
-      <label for="name">Nombre</label>
-      <input id="name" type="text" formControlName="name" />
-    </div>
+  <div class="admin__content">
+    <form class="admin__form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="admin__field">
+        <label for="name">Nombre</label>
+        <input id="name" type="text" formControlName="name" />
+      </div>
 
-    <div class="admin__field">
-      <label for="price">Precio (€)</label>
-      <input id="price" type="number" step="0.1" formControlName="price" />
-    </div>
+      <div class="admin__field">
+        <label for="price">Precio (€)</label>
+        <input id="price" type="number" step="0.1" formControlName="price" />
+      </div>
 
-    <div class="admin__field admin__field--full">
-      <label for="emoji">Emoji</label>
-      <input id="emoji" type="text" formControlName="emoji" />
-      <div class="admin__emoji-picker">
-        @for (emoji of emojiOptions; track emoji) {
-        <button type="button" class="admin__emoji-option" (click)="pickEmoji(emoji)">{{ emoji }}</button>
+      <div class="admin__field">
+        <label for="category">Categoría</label>
+        <select id="category" formControlName="category">
+          @for (cat of categories; track cat) {
+          <option [value]="cat">{{ cat }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="admin__field admin__field--checkbox">
+        <label>
+          <input type="checkbox" formControlName="isNew" />
+          Marcar como nuevo
+        </label>
+      </div>
+
+      <div class="admin__field admin__field--full">
+        <label for="description">Descripción</label>
+        <textarea id="description" formControlName="description"></textarea>
+      </div>
+
+      <div class="admin__actions">
+        <button type="submit" class="btn-primary" [disabled]="form.invalid || saving()">
+          {{ editingId() ? 'Guardar cambios' : 'Añadir producto' }}
+        </button>
+        @if (editingId()) {
+        <button type="button" class="admin__cancel" (click)="cancelEdit()">Cancelar</button>
         }
       </div>
-    </div>
+    </form>
 
-    <div class="admin__field">
-      <label for="category">Categoría</label>
-      <select id="category" formControlName="category">
-        @for (cat of categories; track cat) {
-        <option [value]="cat">{{ cat }}</option>
+    <table class="admin__table">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (product of productService.products(); track product.id) {
+        <tr>
+          <td>{{ product.emoji }} {{ product.name }}</td>
+          <td>{{ product.category }}</td>
+          <td>{{ product.price | currency:'EUR' }}</td>
+          <td class="admin__row-actions">
+            <button type="button" (click)="startEdit(product)">✏️</button>
+            <button type="button" (click)="remove(product)">🗑️</button>
+          </td>
+        </tr>
         }
-      </select>
-    </div>
-
-    <div class="admin__field admin__field--checkbox">
-      <label>
-        <input type="checkbox" formControlName="isNew" />
-        Marcar como nuevo
-      </label>
-    </div>
-
-    <div class="admin__field admin__field--full">
-      <label for="description">Descripción</label>
-      <textarea id="description" formControlName="description"></textarea>
-    </div>
-
-    <div class="admin__actions">
-      <button type="submit" class="btn-primary" [disabled]="form.invalid || saving()">
-        {{ editingId() ? 'Guardar cambios' : 'Añadir producto' }}
-      </button>
-      @if (editingId()) {
-      <button type="button" class="admin__cancel" (click)="cancelEdit()">Cancelar</button>
-      }
-    </div>
-  </form>
-
-  <table class="admin__table">
-    <thead>
-      <tr>
-        <th>Producto</th>
-        <th>Categoría</th>
-        <th>Precio</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (product of productService.products(); track product.id) {
-      <tr>
-        <td>{{ product.emoji }} {{ product.name }}</td>
-        <td>{{ product.category }}</td>
-        <td>{{ product.price | currency:'EUR' }}</td>
-        <td class="admin__row-actions">
-          <button type="button" (click)="startEdit(product)">✏️</button>
-          <button type="button" (click)="remove(product)">🗑️</button>
-        </td>
-      </tr>
-      }
-    </tbody>
-  </table>
+      </tbody>
+    </table>
+  </div>
   }
 
   @if (activeTab() === 'pedidos') {

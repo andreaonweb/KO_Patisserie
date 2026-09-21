@@ -8,11 +8,6 @@ import { OrderService } from '../../core/services/order.service';
 import { Product } from '../../core/models/product.model';
 import type { Order, OrderStatus } from '../../core/models/order.model';
 
-const EMOJI_OPTIONS: string[] = [
-  '🍓', '🌸', '🍵', '🟢', '🍋', '🎂', '🥞', '🐟', '🍰', '🍙', '🧋', '🍮', '🥤',
-  '🍡', '🍪', '🍩', '🧁', '🍦', '🍨', '🍯', '🍬', '🍫', '🍭', '🥧', '🫖', '☕',
-];
-
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -40,43 +35,40 @@ export class AdminComponent {
   readonly orderStatuses: OrderStatus[] = ['pendiente', 'listo', 'entregado'];
 
   editingId = signal<number | null>(null);
+  private editingEmoji = '';
   error = signal('');
   saving = signal(false);
 
   readonly categories: Product['category'][] = ['mochi', 'donut', 'cake', 'drink'];
-  readonly emojiOptions = EMOJI_OPTIONS;
 
   form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     price: [0, [Validators.required, Validators.min(0.01)]],
     description: ['', Validators.required],
-    emoji: ['', Validators.required],
     category: this.fb.nonNullable.control<Product['category']>('mochi', Validators.required),
     isNew: [false],
   });
 
-  pickEmoji(emoji: string): void {
-    this.form.controls.emoji.setValue(emoji);
-  }
-
   startEdit(product: Product): void {
     this.editingId.set(product.id);
-    this.form.reset({ name: '', price: 0, description: '', emoji: '', category: 'mochi', isNew: false });
+    this.editingEmoji = product.emoji;
+    this.form.reset({ name: '', price: 0, description: '', category: 'mochi', isNew: false });
     this.form.patchValue(product);
   }
 
   cancelEdit(): void {
     this.editingId.set(null);
-    this.form.reset({ name: '', price: 0, description: '', emoji: '', category: 'mochi', isNew: false });
+    this.editingEmoji = '';
+    this.form.reset({ name: '', price: 0, description: '', category: 'mochi', isNew: false });
   }
 
   async submit(): Promise<void> {
     if (this.form.invalid) return;
     this.saving.set(true);
     this.error.set('');
-    const value = this.form.getRawValue();
+    const id = this.editingId();
+    const value = { ...this.form.getRawValue(), emoji: id ? this.editingEmoji : '' };
     try {
-      const id = this.editingId();
       if (id) {
         await this.productService.update(id, value);
       } else {
