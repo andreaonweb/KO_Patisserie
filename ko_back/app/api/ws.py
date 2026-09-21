@@ -10,6 +10,7 @@ import jwt
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 
+from app.api import ws_chat  # noqa: F401  (registra los handlers de chat)
 from app.core.database import get_session_factory
 from app.core.origins import ALLOWED_ORIGINS
 from app.core.realtime import HANDLERS, WsError, WsUser, manager
