@@ -6,12 +6,13 @@ from app.api.auth import router as auth_router
 from app.api.orders import router as orders_router
 from app.api.products import router as products_router
 from app.api.uploads import UPLOAD_DIR, UPLOAD_URL_PREFIX, router as uploads_router
+from app.core.origins import ALLOWED_ORIGINS
 
 app = FastAPI(title="Ko Pâtisserie API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
