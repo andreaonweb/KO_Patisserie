@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { ChatService } from '../../../core/services/chat.service';
 
 @Component({
@@ -17,6 +17,13 @@ export class AdminChatComponent {
   constructor() {
     // Al salir de la pestaña se cierra la conversación: lo que llegue después cuenta como no leído.
     inject(DestroyRef).onDestroy(() => this.chat.closeThread());
+    // Tras una recarga (p. ej. reconexión) el hilo abierto puede volver a tener no leídos: se marcan de nuevo.
+    effect(() => {
+      const id = this.chat.activeCustomerId();
+      if (id === null) return;
+      const unread = this.chat.threads().find(t => t.customerId === id)?.unreadCount ?? 0;
+      if (unread > 0) untracked(() => this.chat.markReadFor(id));
+    });
     effect(() => {
       this.chat.activeMessages();
       const el = this.list()?.nativeElement;

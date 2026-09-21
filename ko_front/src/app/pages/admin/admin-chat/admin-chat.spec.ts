@@ -13,6 +13,7 @@ class FakeChat {
   openThread = vi.fn().mockResolvedValue(undefined);
   closeThread = vi.fn();
   sendTo = vi.fn().mockReturnValue(true);
+  markReadFor = vi.fn();
 }
 
 const msg = (over: Partial<ChatMessage> = {}): ChatMessage => ({
@@ -120,6 +121,31 @@ describe('AdminChatComponent', () => {
     fixture.detectChanges();
     expect(chat.sendTo).not.toHaveBeenCalled();
     expect(one('.achat__offline')?.textContent).toContain('Reconectando');
+  });
+
+  it('marks the open thread read when it has unread messages', () => {
+    chat.threads.set([thread(7, 2)]);
+    chat.activeCustomerId.set(7);
+    fixture.detectChanges();
+    expect(chat.markReadFor).toHaveBeenCalledWith(7);
+  });
+
+  it('does not mark the open thread read when nothing is unread', () => {
+    chat.threads.set([thread(7, 0)]);
+    chat.activeCustomerId.set(7);
+    fixture.detectChanges();
+    expect(chat.markReadFor).not.toHaveBeenCalled();
+  });
+
+  it('marks the open thread read when it becomes unread later (after a reconnect reload)', () => {
+    chat.threads.set([thread(7, 0)]);
+    chat.activeCustomerId.set(7);
+    fixture.detectChanges();
+    expect(chat.markReadFor).not.toHaveBeenCalled();
+
+    chat.threads.set([thread(7, 3)]);
+    fixture.detectChanges();
+    expect(chat.markReadFor).toHaveBeenCalledWith(7);
   });
 
   it('closes the open conversation when the tab is left', () => {

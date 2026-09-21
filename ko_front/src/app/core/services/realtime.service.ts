@@ -81,12 +81,14 @@ export class RealtimeService {
   }
 
   private handleMessage(data: string): void {
-    let event: ServerEvent;
+    let parsed: unknown;
     try {
-      event = JSON.parse(data) as ServerEvent;
+      parsed = JSON.parse(data);
     } catch {
       return;
     }
+    if (typeof parsed !== 'object' || parsed === null || typeof (parsed as { type?: unknown }).type !== 'string') return;
+    const event = parsed as ServerEvent;
     if (event.type === 'ready') {
       this.attempt = 0;
       this.status.set('open');

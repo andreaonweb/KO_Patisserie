@@ -93,6 +93,20 @@ describe('RealtimeService', () => {
     expect(seen.map(e => e.type)).toEqual(['ready', 'error']);
   });
 
+  it('ignores malformed payloads without throwing and keeps delivering valid events', () => {
+    const { service, login } = setup();
+    const seen: ServerEvent[] = [];
+    service.events$.subscribe(e => seen.push(e));
+    login();
+    last().open();
+    for (const data of ['null', '5', '"x"', '[]', '{}']) {
+      expect(() => last().onmessage?.({ data })).not.toThrow();
+    }
+    expect(seen).toHaveLength(0);
+    last().receive({ type: 'error', code: 'x', detail: 'y' });
+    expect(seen.map(e => e.type)).toEqual(['error']);
+  });
+
   it('closes the socket on logout', () => {
     const { service, user, login } = setup();
     login();

@@ -119,7 +119,13 @@ export class ChatService {
   async openThread(customerId: number): Promise<void> {
     this.activeCustomerId.set(customerId);
     this.activeMessages.set([]);
-    const applied = await this.loadActive(customerId);
+    let applied = false;
+    try {
+      applied = await this.loadActive(customerId);
+    } catch {
+      this.loadError.set('No se pudo cargar el chat. Se reintentará al reconectar.');
+      return;
+    }
     if (applied && (this.threads().find(t => t.customerId === customerId)?.unreadCount ?? 0) > 0) this.markReadFor(customerId);
   }
 

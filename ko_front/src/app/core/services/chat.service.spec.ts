@@ -383,6 +383,16 @@ describe('ChatService (admin)', () => {
     expect(realtime.send).not.toHaveBeenCalledWith({ type: 'chat.read', customer_id: 7 });
   });
 
+  it('openThread reports an error instead of rejecting when the history request fails', async () => {
+    const { service, http, realtime } = await adminLoaded([apiThread(7, 2)]);
+    const opening = service.openThread(7);
+    http.expectOne(r => r.url === threadUrl(7)).flush('boom', { status: 500, statusText: 'Server Error' });
+    await expect(opening).resolves.toBeUndefined();
+    expect(service.loadError()).not.toBe('');
+    expect(service.activeCustomerId()).toBe(7);
+    expect(realtime.send).not.toHaveBeenCalled();
+  });
+
   it('reports an error instead of an unhandled rejection when an unknown-customer reload fails', async () => {
     const { service, http, realtime } = await adminLoaded([apiThread(7, 0)]);
     realtime.events.next({ type: 'chat.message', message: api({ id: 600, customer_id: 9, sender_id: 9 }) });
