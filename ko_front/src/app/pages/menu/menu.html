@@ -27,23 +27,23 @@
   <p class="menu__empty">Nada coincide con tu búsqueda. Prueba con otros filtros.</p>
   }
 
-  @if (sweets().length > 0) {
-  <h2 class="menu__section">Dulces</h2>
-  <div class="menu__grid">
-    @for (product of sweets(); track product.id) {
-    <app-product-card [product]="product" [cartItems]="cartItems()" (onAdd)="addToCart($event)"
-      (onRemove)="removeFromCart($event)" />
+  <div #content class="menu__content">
+    @for (group of groups(); track group.section) {
+    <h2 class="menu__section">{{ group.title }}</h2>
+    <div class="menu__grid" [class.menu__grid--drinks]="group.section === 'bebidas'">
+      @for (product of group.items; track product.id) {
+      <app-product-card [product]="product" [cartItems]="cartItems()" [compact]="group.section === 'bebidas'"
+        (onAdd)="addToCart($event)" (onRemove)="removeFromCart($event)" />
+      }
+    </div>
     }
   </div>
-  }
 
-  @if (drinks().length > 0) {
-  <h2 class="menu__section">Bebidas</h2>
-  <div class="menu__grid menu__grid--drinks">
-    @for (product of drinks(); track product.id) {
-    <app-product-card [product]="product" [cartItems]="cartItems()" [compact]="true" (onAdd)="addToCart($event)"
-      (onRemove)="removeFromCart($event)" />
-    }
-  </div>
+  @if (pageCount() > 1) {
+  <nav class="menu__pager" aria-label="Paginación de la carta">
+    <button type="button" (click)="goToPage(page() - 1)" [disabled]="page() === 1">Anterior</button>
+    <span aria-live="polite">Página {{ page() }} de {{ pageCount() }}</span>
+    <button type="button" (click)="goToPage(page() + 1)" [disabled]="page() === pageCount()">Siguiente</button>
+  </nav>
   }
 </section>
