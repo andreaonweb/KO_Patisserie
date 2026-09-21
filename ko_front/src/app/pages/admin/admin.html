@@ -194,12 +194,12 @@
         }
       </div>
       <div class="admin__order-state">
-        <span class="badge badge--{{ statusOf(order) }}">{{ statusOf(order) }}</span>
+        <span class="badge badge--{{ order.status }}">{{ order.status }}</span>
         <span class="admin__order-total">{{ order.total | currency:'EUR' }}</span>
       </div>
       <div class="admin__order-actions">
         @for (status of orderStatuses; track status) {
-        <button type="button" [class.on]="statusOf(order) === status"
+        <button type="button" [class.on]="order.status === status"
           (click)="changeStatus(order, status)">{{ status }}</button>
         }
       </div>

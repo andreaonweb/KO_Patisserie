@@ -3,9 +3,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ProductService } from '../../core/services/product.service';
-import { OrderService } from '../../core/services/order.service';
+import { firstValueFrom } from 'rxjs';
+import { OrderService, orderFromApi } from '../../core/services/order.service';
+import { RealtimeService } from '../../core/services/realtime.service';
+import { LiveOrderList } from '../../core/utils/orders';
 import { formatPickupTime } from '../../core/utils/pickup-slots';
-import { pollWhileVisible } from '../../core/utils/poll';
 import { Product } from '../../core/models/product.model';
 import { ProductIconComponent } from '../../shared/components/product-icon/product-icon';
 import { ChatService } from '../../core/services/chat.service';
@@ -41,12 +43,13 @@ export class AdminComponent {
   productService = inject(ProductService);
   orderService = inject(OrderService);
   chat = inject(ChatService);
+  private realtime = inject(RealtimeService);
 
   activeTab = signal<'productos' | 'pedidos' | 'chat'>('productos');
   ordersLoadError = signal('');
-  orders = signal<Order[]>([]);
+  private feed = new LiveOrderList();
+  orders = this.feed.orders;
   orderError = signal('');
-  private statusOverrides = signal<Record<number, OrderStatus>>({});
   readonly orderStatuses: OrderStatus[] = ['pendiente', 'listo', 'entregado'];
 
   editingId = signal<number | null>(null);
@@ -88,7 +91,7 @@ export class AdminComponent {
     const term = normalize(q);
     return this.orders().filter(o =>
       (!term || normalize(`ko-${o.id} ${o.pickupName} ${o.pickupPhone} ${o.items.map(i => i.name).join(' ')}`).includes(term)) &&
-      (!status || this.statusOf(o) === status) &&
+      (!status || o.status === status) &&
       (min === null || o.total >= min) &&
       (max === null || o.total <= max)
     );
@@ -135,17 +138,25 @@ export class AdminComponent {
   }
 
   constructor() {
-    // Los pedidos nuevos y los cambios de estado aparecen sin recargar la página.
-    pollWhileVisible(
-      () => this.orderService.getAll(),
-      e => this.ordersLoadError.set(e.message ?? 'Error al cargar los pedidos')
-    )
-      .pipe(takeUntilDestroyed())
-      .subscribe(rows => {
-        this.ordersLoadError.set('');
-        this.orders.set(rows);
-        this.dropConfirmedOverrides(rows);
-      });
+    void this.loadOrders();
+    // Recarga al reconectar por si se perdió algún evento.
+    this.realtime.reconnected$.pipe(takeUntilDestroyed()).subscribe(() => void this.loadOrders());
+    // Los pedidos nuevos y los cambios de estado llegan al instante.
+    this.realtime.events$.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.type === 'order.created' || event.type === 'order.updated') {
+        this.feed.apply(orderFromApi(event.order));
+      }
+    });
+  }
+
+  private async loadOrders(): Promise<void> {
+    try {
+      await this.feed.load(() => firstValueFrom(this.orderService.getAll()));
+      this.ordersLoadError.set('');
+    } catch (e) {
+      // Se conservan los últimos pedidos mostrados.
+      this.ordersLoadError.set((e as { message?: string }).message ?? 'Error al cargar los pedidos');
+    }
   }
 
   form = this.fb.nonNullable.group({
@@ -232,26 +243,12 @@ export class AdminComponent {
     }
   }
 
-  /**
-   * El override tapa una consulta que salió antes del cambio y llega con el estado viejo.
-   * En cuanto el servidor ya devuelve el estado nuevo, deja de hacer falta.
-   */
-  private dropConfirmedOverrides(rows: Order[]): void {
-    const overrides = this.statusOverrides();
-    const stale = Object.keys(overrides).map(Number).filter(id => rows.find(o => o.id === id)?.status === overrides[id]);
-    if (stale.length === 0) return;
-    this.statusOverrides.update(m => Object.fromEntries(Object.entries(m).filter(([id]) => !stale.includes(Number(id)))));
-  }
-
-  statusOf(order: Order): OrderStatus {
-    return this.statusOverrides()[order.id] ?? order.status;
-  }
-
   async changeStatus(order: Order, status: OrderStatus): Promise<void> {
     this.orderError.set('');
     try {
       await this.orderService.updateStatus(order.id, status);
-      this.statusOverrides.update(m => ({ ...m, [order.id]: status }));
+      // Se refleja ya, aunque el websocket esté caído; el evento que llega después es idempotente.
+      this.feed.apply({ ...order, status });
     } catch (e: any) {
       this.orderError.set((e.message ?? 'Error al actualizar el pedido'));
     }
