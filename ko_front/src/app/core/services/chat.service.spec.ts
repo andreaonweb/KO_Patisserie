@@ -360,4 +360,34 @@ describe('ChatService (admin)', () => {
     await opening;
     expect(service.activeMessages().map(m => m.id)).toEqual([1, 501]);
   });
+
+  it('does not send a read receipt when the thread was closed before its history arrived', async () => {
+    const { service, http, realtime } = await adminLoaded([apiThread(7, 2)]);
+    const opening = service.openThread(7);
+    const req = http.expectOne(r => r.url === threadUrl(7));
+    service.closeThread();
+    req.flush([api({ id: 1, customer_id: 7, sender_id: 7 })]);
+    await opening;
+    expect(realtime.send).not.toHaveBeenCalledWith({ type: 'chat.read', customer_id: 7 });
+  });
+
+  it('does not send a read receipt for a thread replaced by another one while loading', async () => {
+    const { service, http, realtime } = await adminLoaded([apiThread(7, 2), apiThread(8, 0)]);
+    const first = service.openThread(7);
+    const req7 = http.expectOne(r => r.url === threadUrl(7));
+    const second = service.openThread(8);
+    http.expectOne(r => r.url === threadUrl(8)).flush([]);
+    await second;
+    req7.flush([api({ id: 1, customer_id: 7, sender_id: 7 })]);
+    await first;
+    expect(realtime.send).not.toHaveBeenCalledWith({ type: 'chat.read', customer_id: 7 });
+  });
+
+  it('reports an error instead of an unhandled rejection when an unknown-customer reload fails', async () => {
+    const { service, http, realtime } = await adminLoaded([apiThread(7, 0)]);
+    realtime.events.next({ type: 'chat.message', message: api({ id: 600, customer_id: 9, sender_id: 9 }) });
+    http.expectOne(threadsUrl).flush('boom', { status: 500, statusText: 'Server Error' });
+    await vi.waitFor(() => expect(service.loadError()).not.toBe(''));
+    expect(service.threads()).toHaveLength(1);
+  });
 });

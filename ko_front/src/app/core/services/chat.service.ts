@@ -119,8 +119,8 @@ export class ChatService {
   async openThread(customerId: number): Promise<void> {
     this.activeCustomerId.set(customerId);
     this.activeMessages.set([]);
-    await this.loadActive(customerId);
-    if ((this.threads().find(t => t.customerId === customerId)?.unreadCount ?? 0) > 0) this.markReadFor(customerId);
+    const applied = await this.loadActive(customerId);
+    if (applied && (this.threads().find(t => t.customerId === customerId)?.unreadCount ?? 0) > 0) this.markReadFor(customerId);
   }
 
   closeThread(): void {
@@ -146,13 +146,19 @@ export class ChatService {
     this.loadError.set('');
   }
 
-  private async loadActive(customerId: number): Promise<void> {
+  /** Devuelve true si la respuesta se aplicó (el hilo sigue abierto y el usuario no cambió). */
+  private async loadActive(customerId: number): Promise<boolean> {
     const userId = this.auth.currentUser()?.id;
     const rows = await firstValueFrom(
       this.http.get<ChatMessageApi[]>(`${API}/threads/${customerId}/messages`, { params: { limit: PAGE_SIZE } })
     );
-    if (this.auth.currentUser()?.id !== userId || this.activeCustomerId() !== customerId) return;
+    if (this.auth.currentUser()?.id !== userId || this.activeCustomerId() !== customerId) return false;
     this.activeMessages.update(list => mergeMessages(list, rows.map(messageFromApi)));
+    return true;
+  }
+
+  private reloadThreads(): void {
+    this.loadThreads().catch(() => this.loadError.set('No se pudo cargar el chat. Se reintentará al reconectar.'));
   }
 
   private async load(role: AppUser['role'] | undefined): Promise<void> {
@@ -187,7 +193,7 @@ export class ChatService {
     if (isActive) this.activeMessages.update(list => upsert(list, message));
 
     if (!this.threads().some(t => t.customerId === message.customerId)) {
-      void this.loadThreads();
+      this.reloadThreads();
       return;
     }
     this.threads.update(list => {
