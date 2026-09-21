@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { RealtimeService } from './core/services/realtime.service';
 import { NavbarComponent } from './shared/components/navbar/navbar';
 import { FooterComponent } from './shared/components/footer/footer';
 
@@ -18,4 +19,7 @@ import { FooterComponent } from './shared/components/footer/footer';
     main { display: block; min-height: 70vh; }
   `]
 })
-export class App { }
+export class App {
+  // Instanciarlo aquí abre el websocket en cuanto hay sesión.
+  private realtime = inject(RealtimeService);
+}
