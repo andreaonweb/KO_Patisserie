@@ -3,7 +3,7 @@
 
 .achat {
   display: grid;
-  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  grid-template-columns: minmax(min(100%, 240px), 320px) minmax(0, 1fr);
   min-height: 460px;
   @include card;
   overflow: hidden;
@@ -36,12 +36,12 @@
 }
 
 .achat__who {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: $text-dark;
 }
 
 .achat__last {
-  font-size: 12.5px;
+  font-size: 0.7812rem;
   color: $text-muted;
   white-space: nowrap;
   overflow: hidden;
@@ -59,7 +59,7 @@
   border-radius: $radius-pill;
   background: $rose;
   color: $white;
-  font-size: 11px;
+  font-size: 0.75rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -74,7 +74,7 @@
 
 .achat__empty {
   padding: 24px 20px;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.6;
   color: $text-muted;
 
@@ -102,7 +102,7 @@
   border-radius: 14px 14px 14px 4px;
 
   p {
-    font-size: 14px;
+    font-size: 0.875rem;
     line-height: 1.5;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -111,7 +111,7 @@
   time {
     display: block;
     margin-top: 3px;
-    font-size: 10.5px;
+    font-size: 0.75rem;
     color: $text-muted;
   }
 
@@ -125,7 +125,7 @@
 
 .achat__offline {
   padding: 6px 20px;
-  font-size: 12px;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
   background: $secondary;
   color: $rose-dark;
@@ -142,11 +142,11 @@
 .achat__input {
   flex: 1;
   padding: 10px 12px;
-  border: 1px solid $border;
+  border: 1px solid $border-input;
   border-radius: $radius-md;
   background: $cream;
   color: $text-dark;
-  font-size: 14px;
+  font-size: 0.875rem;
   resize: none;
 }
 

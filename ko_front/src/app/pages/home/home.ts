@@ -17,6 +17,7 @@ export class HomeComponent {
   readonly Package = Package;
 
   scrollToStops(): void {
-    document.getElementById('como-llegar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById('como-llegar')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   }
 }
