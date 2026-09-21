@@ -2,86 +2,86 @@
 @use '../../../styles/mixins' as *;
 
 .orders {
-  max-width: 640px;
-  margin: 3rem auto;
-  padding: 0 1.5rem;
-
-  &__header {
-    text-align: center;
-    margin-bottom: 2rem;
-
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 0.25rem;
-    }
-
-    p {
-      color: $text-muted;
-      margin: 0;
-    }
+  .page-title {
+    margin-bottom: 36px;
   }
 
   &__empty {
-    text-align: center;
-    color: $text-muted;
-  }
+    @include card;
+    max-width: 520px;
+    padding: 44px 32px;
 
-  &__error {
-    background: #fdeceb;
-    color: #c0392b;
-    padding: 0.75rem 1rem;
-    border-radius: $radius-sm;
-    margin-bottom: 1rem;
+    p {
+      margin-bottom: 22px;
+      font-size: 15.5px;
+      line-height: 1.7;
+      color: $text-muted;
+    }
   }
 
   &__list {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 16px;
+    max-width: 820px;
   }
 
   &__item {
     @include card;
-    padding: 1rem 1.25rem;
+    padding: 24px 26px;
   }
 
   &__item-header {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
     align-items: center;
-    margin-bottom: 0.5rem;
-    font-size: 0.85rem;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px;
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  &__ref {
+    font-family: $font-mono;
+    font-size: 12.5px;
+  }
+
+  &__date {
+    font-size: 12.5px;
     color: $text-muted;
   }
 
-  &__status {
-    border-radius: $radius-xl;
-    padding: 0.2rem 0.7rem;
-    font-weight: 600;
-    background: $secondary;
-
-    &--listo {
-      background: $accent-light;
-      color: $accent;
-    }
-
-    &--entregado {
-      background: $border;
-    }
-  }
-
-  &__item-products {
+  &__lines {
     list-style: none;
-    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    border-top: 1px solid $border;
+    padding-top: 16px;
+    margin-bottom: 16px;
 
     li {
-      padding: 0.15rem 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      font-size: 14px;
+      color: $text-muted;
+
+      span:last-child {
+        color: $text-dark;
+      }
     }
   }
 
-  &__item-total {
-    font-weight: 700;
+  &__total {
     text-align: right;
+    font-family: $font-title;
+    font-size: 22px;
   }
 }

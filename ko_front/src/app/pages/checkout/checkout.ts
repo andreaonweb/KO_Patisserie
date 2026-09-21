@@ -3,12 +3,13 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { CartService } from '../../core/services/cart.service';
+import { ProductIconComponent } from '../../shared/components/product-icon/product-icon';
 import { OrderService } from '../../core/services/order.service';
 
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [ReactiveFormsModule, CurrencyPipe],
+  imports: [ReactiveFormsModule, CurrencyPipe, ProductIconComponent],
   templateUrl: './checkout.html',
   styleUrl: './checkout.scss',
 })
@@ -50,7 +51,7 @@ export class CheckoutComponent implements OnInit {
       this.cart.clear();
       this.router.navigate(['/checkout/confirmacion', orderId]);
     } catch (e: any) {
-      this.error.set('❌ ' + (e.message ?? 'Error al confirmar el pedido'));
+      this.error.set((e.message ?? 'Error al confirmar el pedido'));
     } finally {
       this.saving.set(false);
     }

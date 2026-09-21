@@ -1,37 +1,35 @@
 <section class="auth">
-  <div class="auth__card">
-    <div class="auth__icon">🌸</div>
-    <h1 class="auth__title">Shirayuki Pâtisserie</h1>
-    <p class="auth__sub">{{ isLogin() ? 'Inicia sesión' : 'Crea tu cuenta' }}</p>
+  <form class="auth__card" (ngSubmit)="submit()" aria-label="Acceso">
+    <h1 class="auth__title">{{ isLogin() ? 'Entrar' : 'Crear cuenta' }}</h1>
+
+    <label class="field">Email
+      <input type="email" name="email" [(ngModel)]="email" placeholder="tu@email.com" autocomplete="username" required />
+    </label>
+
+    <label class="field">Contraseña
+      <input type="password" name="password" [(ngModel)]="password" placeholder="••••••••"
+        [attr.autocomplete]="isLogin() ? 'current-password' : 'new-password'" required />
+    </label>
+
+    @if (error()) {
+    <p class="msg-error" role="alert">{{ error() }}</p>
+    }
+
+    <button type="submit" class="btn-dark" [disabled]="loading()">
+      {{ loading() ? 'Cargando…' : (isLogin() ? 'Entrar' : 'Registrarme') }}
+    </button>
 
     <div class="auth__demo">
-      <p>🎬 Cuenta demo: <strong>admin@email.com</strong> / <strong>admin123</strong></p>
-      <button type="button" class="auth__demo-btn" (click)="fillDemoAccount()">Usar cuenta demo</button>
+      <p>Cuentas demo</p>
+      <div class="auth__demo-actions">
+        <button type="button" class="btn-ghost" [disabled]="loading()" (click)="demoLogin('customer')">Entrar como cliente</button>
+        <button type="button" class="btn-ghost" [disabled]="loading()" (click)="demoLogin('admin')">Entrar como admin</button>
+      </div>
     </div>
 
-    <div class="auth__form">
-      <div class="field">
-        <label>📧 Email</label>
-        <input type="email" [(ngModel)]="email" placeholder="hana@sakura.com" />
-      </div>
-
-      <div class="field">
-        <label>🔑 Contraseña</label>
-        <input type="password" [(ngModel)]="password" placeholder="••••••••" />
-      </div>
-
-      @if (error()) {
-      <p class="auth__error">{{ error() }}</p>
-      }
-
-      <button class="btn-submit" [disabled]="loading()" (click)="submit()">
-        {{ loading() ? '⏳ Cargando...' : (isLogin() ? '✨ Entrar' : '🌸 Registrarme') }}
-      </button>
-
-      <p class="auth__toggle">
-        {{ isLogin() ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?' }}
-        <span (click)="toggleMode()">{{ isLogin() ? 'Regístrate' : 'Inicia sesión' }}</span>
-      </p>
-    </div>
-  </div>
+    <p class="auth__toggle">
+      {{ isLogin() ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?' }}
+      <button type="button" class="auth__link" (click)="toggleMode()">{{ isLogin() ? 'Regístrate' : 'Inicia sesión' }}</button>
+    </p>
+  </form>
 </section>

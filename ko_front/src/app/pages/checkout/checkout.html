@@ -1,45 +1,47 @@
-<section class="checkout">
-  <div class="checkout__header">
-    <h1>Confirmar pedido</h1>
-    <p>Retiro en tienda · Revisá tu pedido y dejanos tus datos</p>
-  </div>
+<section class="page checkout">
+  <p class="eyebrow">Retiro en tienda</p>
+  <h1 class="page-title">Confirmar pedido</h1>
+  <p class="lead">Revisa tu pedido y déjanos tus datos para prepararlo.</p>
 
   @if (error()) {
-  <p class="checkout__error">{{ error() }}</p>
+  <p class="msg-error">{{ error() }}</p>
   }
 
-  <ul class="checkout__summary">
-    @for (item of cartItems(); track item.product.id) {
-    <li class="checkout__item">
-      <span class="checkout__item-emoji">{{ item.product.emoji }}</span>
-      <div class="checkout__item-info">
-        <p class="checkout__item-name">{{ item.product.name }}</p>
-        <p class="checkout__item-qty">{{ item.product.price | currency:'EUR' }} × {{ item.quantity }}</p>
+  <div class="checkout__layout">
+    <div class="checkout__panel">
+      <h2>Tu pedido</h2>
+      <ul class="checkout__summary">
+        @for (item of cartItems(); track item.product.id) {
+        <li class="checkout__item">
+          <span class="checkout__item-emoji"><app-product-icon [category]="item.product.category" [imageUrl]="item.product.imageUrl" [size]="22" [frame]="46" /></span>
+          <div class="checkout__item-info">
+            <p class="checkout__item-name">{{ item.product.name }}</p>
+            <p class="checkout__item-qty">{{ item.product.price | currency:'EUR' }} × {{ item.quantity }}</p>
+          </div>
+          <span class="checkout__item-total">{{ item.product.price * item.quantity | currency:'EUR' }}</span>
+        </li>
+        }
+      </ul>
+      <p class="checkout__total"><span>Total</span><strong>{{ cart.total() | currency:'EUR' }}</strong></p>
+    </div>
+
+    <form class="checkout__panel checkout__form" [formGroup]="form" (ngSubmit)="submit()">
+      <h2>Datos de retiro</h2>
+      <div class="field">
+        <label for="pickupName">Nombre</label>
+        <input id="pickupName" type="text" formControlName="pickupName" />
       </div>
-    </li>
-    }
-  </ul>
-
-  <p class="checkout__total">Total: {{ cart.total() | currency:'EUR' }}</p>
-
-  <form class="checkout__form" [formGroup]="form" (ngSubmit)="submit()">
-    <div class="checkout__field">
-      <label for="pickupName">Nombre</label>
-      <input id="pickupName" type="text" formControlName="pickupName" />
-    </div>
-
-    <div class="checkout__field">
-      <label for="pickupPhone">Teléfono</label>
-      <input id="pickupPhone" type="tel" formControlName="pickupPhone" />
-    </div>
-
-    <div class="checkout__field">
-      <label for="pickupTime">Horario de retiro</label>
-      <input id="pickupTime" type="text" placeholder="Ej: Hoy 18:00" formControlName="pickupTime" />
-    </div>
-
-    <button type="submit" class="checkout__submit" [disabled]="form.invalid || saving()">
-      {{ saving() ? 'Confirmando…' : 'Hacer pedido ✨' }}
-    </button>
-  </form>
+      <div class="field">
+        <label for="pickupPhone">Teléfono</label>
+        <input id="pickupPhone" type="tel" formControlName="pickupPhone" />
+      </div>
+      <div class="field">
+        <label for="pickupTime">Horario de retiro</label>
+        <input id="pickupTime" type="text" placeholder="Ej: Hoy 18:00" formControlName="pickupTime" />
+      </div>
+      <button type="submit" class="btn-primary" [disabled]="form.invalid || saving()">
+        {{ saving() ? 'Confirmando…' : 'Hacer pedido' }}
+      </button>
+    </form>
+  </div>
 </section>
