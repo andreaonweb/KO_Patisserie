@@ -92,7 +92,9 @@ async def _dispatch(websocket: WebSocket, session_factory: SessionFactory, user:
 async def _receive_loop(websocket: WebSocket, session_factory: SessionFactory, user: WsUser) -> None:
     recent: deque[float] = deque()
     while True:
-        raw = await websocket.receive_text()
+        message = await websocket.receive()
+        if message["type"] == "websocket.disconnect":
+            raise WebSocketDisconnect(message.get("code", 1000))
         now = time.monotonic()
         while recent and now - recent[0] > RATE_LIMIT_WINDOW_S:
             recent.popleft()
@@ -100,6 +102,10 @@ async def _receive_loop(websocket: WebSocket, session_factory: SessionFactory, u
             await _send_error(websocket, "rate_limited", "Demasiados mensajes, espera unos segundos")
             continue
         recent.append(now)
+        raw = message.get("text")
+        if raw is None:
+            await _send_error(websocket, "bad_request", "Solo se admiten frames de texto")
+            continue
         await _dispatch(websocket, session_factory, user, raw)
 
 

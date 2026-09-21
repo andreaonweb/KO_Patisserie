@@ -89,6 +89,16 @@ def test_unknown_type_and_bad_json_return_errors_and_keep_the_socket(client, cus
         assert ws.receive_json()["code"] == "bad_request"
 
 
+def test_binary_frame_returns_bad_request_and_keeps_the_socket(client, customer_token) -> None:
+    with client.websocket_connect("/ws") as ws:
+        _auth(ws, customer_token)
+        ws.receive_json()
+        ws.send_bytes(b"\x00\x01")
+        assert ws.receive_json()["code"] == "bad_request"
+        ws.send_json({"type": "nope"})
+        assert ws.receive_json()["code"] == "unknown_type"
+
+
 def test_frames_are_dispatched_to_the_registered_handler(client, customer_token, monkeypatch) -> None:
     async def ping(db, user, frame) -> None:
         await manager.send_to_user(user.id, {"type": "pong", "n": frame["n"]})

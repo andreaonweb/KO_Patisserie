@@ -61,7 +61,7 @@ def create_order(
     return response
 
 
-@router.get("",response_model=list[OrderResponse])
+@router.get("", response_model=list[OrderResponse])
 def list_orders(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ) -> list[OrderResponse]:
