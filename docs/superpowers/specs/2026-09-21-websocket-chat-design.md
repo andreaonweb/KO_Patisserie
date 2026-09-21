@@ -176,6 +176,17 @@ their behavior and additionally publish `order.created` / `order.updated`.
   removed with it.
 - Message text is always rendered as text (Angular interpolation), never as HTML.
 
+## Offline behavior
+
+- **Recipient offline:** never loses a message. `chat.send` persists the message
+  first and only then pushes it to whoever is connected. If no admin is online, the
+  message waits in the database and shows up (with its unread count) when an admin
+  opens the Chat tab; an admin reply waits the same way for a customer who is
+  offline.
+- **Sender offline:** the only thing not supported is composing while the sender's
+  *own* socket is down. The send button is disabled with a "Reconectando…" notice
+  until the connection returns; there is no offline outbox.
+
 ## Errors
 
 - Bad/oversized/unknown frames → `error` event, connection stays open.
