@@ -91,9 +91,13 @@ replies `{"type":"ready","user":{"id":…,"role":…}}`. Failure closes the sock
 | 4401 | missing/invalid token, unknown user, or handshake timeout |
 | 4403 | `Origin` header not allowed |
 
-The `Origin` header is checked before accepting, against the same allow-list as CORS
-(`http://localhost:4200`), which becomes a shared constant. Nothing else is
-processed before `ready`.
+The `Origin` header is checked right after `accept` (the socket is accepted first so
+the browser can actually read the 4403 close code; a pre-accept rejection would only
+surface as a generic 1006). A request whose `Origin` is present and not in the CORS
+allow-list (`http://localhost:4200`, which becomes a shared constant) is closed with
+4403. A missing `Origin` is allowed: browsers always send it, so the check exists to
+stop other web pages from opening sockets with a user's session, while non-browser
+clients (tests, scripts) do not send one. Nothing else is processed before `ready`.
 
 **Client → server**
 
