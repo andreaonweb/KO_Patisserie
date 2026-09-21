@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { RealtimeService } from './realtime.service';
-import { ChatService } from './chat.service';
+import { ChatService, mergeMessages, messageFromApi } from './chat.service';
 import type { AppUser } from '../models/user.model';
 import type { ChatMessageApi } from '../models/chat.model';
 import type { ServerEvent } from '../models/realtime.model';
@@ -136,5 +136,34 @@ describe('ChatService (customer)', () => {
     user.set(undefined);
     TestBed.tick();
     expect(service.customerMessages()).toEqual([]);
+  });
+
+  it('discards a load response that arrives after logout', async () => {
+    const { service, http, user } = setup();
+    const req = http.expectOne(r => r.url === messagesUrl);
+    user.set(undefined);
+    TestBed.tick();
+    req.flush([api({ id: 1 })]);
+    await new Promise(resolve => setTimeout(resolve));
+    expect(service.customerMessages()).toEqual([]);
+  });
+
+  it('keeps a live message that arrives while a reload is in flight', async () => {
+    const { service, http, realtime } = await loaded([api({ id: 1 })]);
+    realtime.reconnected.next();
+    const req = http.expectOne(r => r.url === messagesUrl);
+    realtime.events.next({ type: 'chat.message', message: api({ id: 2, sender_role: 'admin', sender_id: 1 }) });
+    req.flush([api({ id: 1 })]);
+    await vi.waitFor(() => expect(service.customerMessages().map(m => m.id)).toEqual([1, 2]));
+  });
+});
+
+describe('mergeMessages', () => {
+  it('unions by id, sorts ascending and prefers the server copy', () => {
+    const current = [messageFromApi(api({ id: 3, body: 'live' })), messageFromApi(api({ id: 1, body: 'old' }))];
+    const loaded = [messageFromApi(api({ id: 2 })), messageFromApi(api({ id: 1, body: 'server' }))];
+    const merged = mergeMessages(current, loaded);
+    expect(merged.map(m => m.id)).toEqual([1, 2, 3]);
+    expect(merged[0].body).toBe('server');
   });
 });

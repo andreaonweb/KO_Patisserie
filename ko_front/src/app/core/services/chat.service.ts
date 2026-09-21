@@ -27,6 +27,11 @@ function upsert(list: ChatMessage[], message: ChatMessage): ChatMessage[] {
   return list.some(m => m.id === message.id) ? list.map(m => (m.id === message.id ? message : m)) : [...list, message];
 }
 
+/** Une lo cargado con lo actual: gana la copia del servidor, se conservan los mensajes en vivo y se ordena por id. */
+export function mergeMessages(current: ChatMessage[], loaded: ChatMessage[]): ChatMessage[] {
+  return loaded.reduce(upsert, current).slice().sort((a, b) => a.id - b.id);
+}
+
 /** Marca como leídos los mensajes que lee `readerRole` (los del otro lado). */
 function withRead(list: ChatMessage[], readerRole: ChatRole): ChatMessage[] {
   const target: ChatRole = readerRole === 'admin' ? 'customer' : 'admin';
@@ -62,8 +67,10 @@ export class ChatService {
   }
 
   async loadCustomerThread(): Promise<void> {
+    const userId = this.auth.currentUser()?.id;
     const rows = await firstValueFrom(this.http.get<ChatMessageApi[]>(`${API}/messages`, { params: { limit: PAGE_SIZE } }));
-    this.customerMessages.set(rows.map(messageFromApi));
+    if (this.auth.currentUser()?.id !== userId) return;
+    this.customerMessages.update(list => mergeMessages(list, rows.map(messageFromApi)));
   }
 
   /** Devuelve false si no se pudo enviar (conexión caída): el mensaje no se encola. */
