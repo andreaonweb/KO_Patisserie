@@ -1,0 +1,51 @@
+@if (visible()) {
+<div class="chat">
+  @if (open()) {
+  <section class="chat__panel" role="dialog" aria-label="Chat de ayuda" (keydown.escape)="close()">
+    <header class="chat__header">
+      <h2>Ayuda</h2>
+      <button type="button" class="chat__close" (click)="close()" aria-label="Cerrar chat">
+        <lucide-icon [name]="X" [size]="16" aria-hidden="true" />
+      </button>
+    </header>
+
+    <div #list class="chat__list" role="log" aria-live="polite" aria-label="Mensajes">
+      @if (chat.loadError()) {
+      <p class="chat__note chat__note--error">{{ chat.loadError() }}</p>
+      }
+      @if (chat.customerMessages().length === 0) {
+      <p class="chat__note">Escríbenos tu duda y te responderemos en cuanto podamos.</p>
+      }
+      @for (m of chat.customerMessages(); track m.id) {
+      <div class="chat__msg" [class.chat__msg--mine]="m.senderRole === 'customer'">
+        <p>{{ m.body }}</p>
+        <time>{{ m.createdAt | date:'HH:mm' }}</time>
+      </div>
+      }
+    </div>
+
+    @if (!chat.canSend()) {
+    <p class="chat__offline" role="status">Reconectando…</p>
+    }
+
+    <form class="chat__form" (submit)="onSubmit($event)">
+      <textarea class="chat__input" rows="1" maxlength="1000" placeholder="Escribe tu mensaje"
+        aria-label="Mensaje" [value]="draft()" (input)="draft.set($any($event.target).value)"
+        (keydown.enter)="onEnter($event)"></textarea>
+      <button type="submit" class="chat__send" [disabled]="!chat.canSend()" aria-label="Enviar mensaje">
+        <lucide-icon [name]="Send" [size]="16" aria-hidden="true" />
+      </button>
+    </form>
+  </section>
+  }
+
+  <button type="button" class="chat__fab" (click)="toggle()" [attr.aria-expanded]="open()"
+    aria-label="Abrir el chat de ayuda">
+    <lucide-icon [name]="MessageCircle" [size]="18" aria-hidden="true" />
+    <span>¿Necesitas ayuda?</span>
+    @if (!open() && chat.customerUnread() > 0) {
+    <span class="chat__badge">{{ chat.customerUnread() }}</span>
+    }
+  </button>
+</div>
+}

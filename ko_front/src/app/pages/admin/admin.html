@@ -9,6 +9,13 @@
         [attr.aria-selected]="activeTab() === 'productos'" (click)="activeTab.set('productos')">Productos</button>
       <button type="button" role="tab" class="admin__tab" [class.admin__tab--active]="activeTab() === 'pedidos'"
         [attr.aria-selected]="activeTab() === 'pedidos'" (click)="activeTab.set('pedidos')">Pedidos</button>
+      <button type="button" role="tab" class="admin__tab" [class.admin__tab--active]="activeTab() === 'chat'"
+        [attr.aria-selected]="activeTab() === 'chat'" (click)="activeTab.set('chat')">
+        Chat
+        @if (chat.adminUnreadTotal() > 0) {
+        <span class="admin__tab-badge">{{ chat.adminUnreadTotal() }}</span>
+        }
+      </button>
     </div>
   </div>
 
@@ -187,12 +194,12 @@
         }
       </div>
       <div class="admin__order-state">
-        <span class="badge badge--{{ statusOf(order) }}">{{ statusOf(order) }}</span>
+        <span class="badge badge--{{ order.status }}">{{ order.status }}</span>
         <span class="admin__order-total">{{ order.total | currency:'EUR' }}</span>
       </div>
       <div class="admin__order-actions">
         @for (status of orderStatuses; track status) {
-        <button type="button" [class.on]="statusOf(order) === status"
+        <button type="button" [class.on]="order.status === status"
           (click)="changeStatus(order, status)">{{ status }}</button>
         }
       </div>
@@ -207,5 +214,9 @@
   </nav>
   }
   }
+  }
+
+  @if (activeTab() === 'chat') {
+  <app-admin-chat />
   }
 </section>

@@ -2,9 +2,10 @@ import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { OrderService } from '../../core/services/order.service';
-import { pollWhileVisible } from '../../core/utils/poll';
-import type { Order } from '../../core/models/order.model';
+import { firstValueFrom } from 'rxjs';
+import { OrderService, orderFromApi } from '../../core/services/order.service';
+import { RealtimeService } from '../../core/services/realtime.service';
+import { LiveOrderList } from '../../core/utils/orders';
 
 @Component({
   selector: 'app-orders',
@@ -15,20 +16,31 @@ import type { Order } from '../../core/models/order.model';
 })
 export class OrdersComponent {
   private orderService = inject(OrderService);
+  private realtime = inject(RealtimeService);
 
   loadError = signal('');
-  orders = signal<Order[]>([]);
+  private feed = new LiveOrderList();
+  orders = this.feed.orders;
 
   constructor() {
-    // Así el cliente ve los cambios de estado que hace el admin sin recargar la página.
-    pollWhileVisible(
-      () => this.orderService.getMine(),
-      e => this.loadError.set(e.message ?? 'Error al cargar tus pedidos')
-    )
-      .pipe(takeUntilDestroyed())
-      .subscribe(rows => {
-        this.loadError.set('');
-        this.orders.set(rows);
-      });
+    void this.load();
+    // Recarga al reconectar por si se perdió algún evento.
+    this.realtime.reconnected$.pipe(takeUntilDestroyed()).subscribe(() => void this.load());
+    // Los cambios de estado que hace el admin llegan al instante.
+    this.realtime.events$.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.type === 'order.updated' || event.type === 'order.created') {
+        this.feed.apply(orderFromApi(event.order));
+      }
+    });
+  }
+
+  private async load(): Promise<void> {
+    try {
+      await this.feed.load(() => firstValueFrom(this.orderService.getMine()));
+      this.loadError.set('');
+    } catch (e) {
+      // Se conservan los últimos pedidos mostrados.
+      this.loadError.set((e as { message?: string }).message ?? 'Error al cargar tus pedidos');
+    }
   }
 }

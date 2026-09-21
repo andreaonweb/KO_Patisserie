@@ -1,0 +1,46 @@
+<div class="achat">
+  <aside class="achat__list" aria-label="Conversaciones">
+    @if (chat.loadError()) {
+    <p class="achat__empty achat__empty--error">{{ chat.loadError() }}</p>
+    }
+    @if (chat.threads().length === 0) {
+    <p class="achat__empty">Todavía no hay conversaciones.</p>
+    }
+    @for (t of chat.threads(); track t.customerId) {
+    <button type="button" class="achat__thread" [class.achat__thread--active]="chat.activeCustomerId() === t.customerId"
+      (click)="chat.openThread(t.customerId)">
+      <span class="achat__who">{{ t.customerEmail }}</span>
+      <span class="achat__last">{{ t.lastMessage.body }}</span>
+      @if (t.unreadCount > 0) {
+      <span class="achat__badge">{{ t.unreadCount }}</span>
+      }
+    </button>
+    }
+  </aside>
+
+  <section class="achat__conversation" aria-label="Conversación">
+    @if (chat.activeCustomerId() === null) {
+    <p class="achat__empty">Elige una conversación de la lista para verla y responder.</p>
+    } @else {
+    <div #list class="achat__messages" role="log" aria-live="polite">
+      @for (m of chat.activeMessages(); track m.id) {
+      <div class="achat__msg" [class.achat__msg--mine]="m.senderRole === 'admin'">
+        <p>{{ m.body }}</p>
+        <time>{{ m.createdAt | date:'d MMM · HH:mm' }}</time>
+      </div>
+      }
+    </div>
+
+    @if (!chat.canSend()) {
+    <p class="achat__offline" role="status">Reconectando…</p>
+    }
+
+    <form class="achat__form" (submit)="onSubmit($event)">
+      <textarea class="achat__input" rows="2" maxlength="1000" placeholder="Escribe tu respuesta"
+        aria-label="Respuesta" [value]="draft()" (input)="draft.set($any($event.target).value)"
+        (keydown.enter)="onEnter($event)"></textarea>
+      <button type="submit" class="btn-dark" [disabled]="!chat.canSend()">Enviar</button>
+    </form>
+    }
+  </section>
+</div>

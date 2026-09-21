@@ -1,0 +1,163 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.achat {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  min-height: 460px;
+  @include card;
+  overflow: hidden;
+}
+
+.achat__list {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid $border;
+  overflow-y: auto;
+  max-height: 560px;
+}
+
+.achat__thread {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 44px 14px 18px;
+  border: 0;
+  border-bottom: 1px solid $border-soft;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &--active {
+    background: $secondary;
+  }
+}
+
+.achat__who {
+  font-size: 14px;
+  color: $text-dark;
+}
+
+.achat__last {
+  font-size: 12.5px;
+  color: $text-muted;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.achat__badge {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: $radius-pill;
+  background: $rose;
+  color: $white;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.achat__conversation {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.achat__empty {
+  padding: 24px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $text-muted;
+
+  &--error {
+    color: $rose;
+  }
+}
+
+.achat__messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  overflow-y: auto;
+  max-height: 440px;
+}
+
+.achat__msg {
+  align-self: flex-start;
+  max-width: 78%;
+  padding: 9px 13px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 14px 14px 14px 4px;
+
+  p {
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  time {
+    display: block;
+    margin-top: 3px;
+    font-size: 10.5px;
+    color: $text-muted;
+  }
+
+  &--mine {
+    align-self: flex-end;
+    background: $primary;
+    border-color: $primary-border;
+    border-radius: 14px 14px 4px 14px;
+  }
+}
+
+.achat__offline {
+  padding: 6px 20px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  background: $secondary;
+  color: $rose-dark;
+}
+
+.achat__form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid $border;
+}
+
+.achat__input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  background: $cream;
+  color: $text-dark;
+  font-size: 14px;
+  resize: none;
+}
+
+@media (max-width: 720px) {
+  .achat {
+    grid-template-columns: 1fr;
+  }
+
+  .achat__list {
+    border-right: 0;
+    border-bottom: 1px solid $border;
+    max-height: 220px;
+  }
+}

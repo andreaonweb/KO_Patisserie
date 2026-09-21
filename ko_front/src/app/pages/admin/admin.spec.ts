@@ -1,9 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { AdminComponent } from './admin';
 import { ProductService } from '../../core/services/product.service';
 import { OrderService } from '../../core/services/order.service';
+import { ChatService } from '../../core/services/chat.service';
+import { RealtimeService } from '../../core/services/realtime.service';
+import type { ServerEvent } from '../../core/models/realtime.model';
 import type { Product } from '../../core/models/product.model';
 import type { Order, OrderStatus } from '../../core/models/order.model';
 
@@ -19,6 +22,39 @@ class FakeOrderService {
   getAll = vi.fn().mockReturnValue(of([]));
   updateStatus = vi.fn().mockResolvedValue(undefined);
 }
+
+class FakeChatService {
+  adminUnreadTotal = signal(0);
+  // Lo que usa el componente hijo `app-admin-chat` cuando se abre la pestaña:
+  threads = signal([]);
+  activeCustomerId = signal<number | null>(null);
+  activeMessages = signal([]);
+  canSend = signal(true);
+  loadError = signal('');
+  openThread = vi.fn();
+  closeThread = vi.fn();
+  sendTo = vi.fn();
+}
+
+class FakeRealtime {
+  events = new Subject<ServerEvent>();
+  reconnected = new Subject<void>();
+  events$ = this.events.asObservable();
+  reconnected$ = this.reconnected.asObservable();
+}
+
+const apiOrder = (over: Record<string, unknown> = {}) => ({
+  id: 1,
+  user_id: 2,
+  items: [{ product_id: 1, name: 'Mochi de Fresa', price: 3.5, quantity: 2 }],
+  total: 7,
+  pickup_name: 'Ana',
+  pickup_phone: '600111222',
+  pickup_time: '2026-09-22T18:00',
+  status: 'pendiente',
+  created_at: '2023-11-14T22:13:20',
+  ...over,
+});
 
 const SAMPLE_PRODUCT: Product = {
   id: 1,
@@ -46,13 +82,17 @@ describe('AdminComponent', () => {
   let fixture: ComponentFixture<AdminComponent>;
   let productService: FakeProductService;
   let orderService: FakeOrderService;
+  let realtime: FakeRealtime;
 
   beforeEach(async () => {
+    realtime = new FakeRealtime();
     await TestBed.configureTestingModule({
       imports: [AdminComponent],
       providers: [
         { provide: ProductService, useClass: FakeProductService },
         { provide: OrderService, useClass: FakeOrderService },
+        { provide: ChatService, useClass: FakeChatService },
+        { provide: RealtimeService, useValue: realtime },
       ],
     }).compileComponents();
 
@@ -65,6 +105,21 @@ describe('AdminComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows the Chat tab with the unread total', () => {
+    const chat = TestBed.inject(ChatService) as unknown as FakeChatService;
+    chat.adminUnreadTotal.set(3);
+    fixture.detectChanges();
+    const tabs = Array.from(fixture.nativeElement.querySelectorAll('.admin__tab')) as HTMLElement[];
+    const chatTab = tabs.find(t => t.textContent?.includes('Chat'))!;
+    expect(chatTab.querySelector('.admin__tab-badge')?.textContent?.trim()).toBe('3');
+  });
+
+  it('switches to the chat panel', () => {
+    component.activeTab.set('chat');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-admin-chat')).not.toBeNull();
   });
 
   it('form is invalid when required fields are empty', () => {
@@ -233,8 +288,7 @@ describe('AdminComponent', () => {
       orderService.getAll.mockReturnValue(of(orders));
       const f = TestBed.createComponent(AdminComponent);
       const c = f.componentInstance;
-
-      expect(c.orderPages()).toBe(2);
+      await vi.waitFor(() => expect(c.orderPages()).toBe(2));
       expect(c.pagedOrders()).toHaveLength(8);
       c.setOrderFilter({ q: 'lucia' });
       expect(c.filteredOrders().map(o => o.id)).toEqual([1]);
@@ -281,68 +335,84 @@ describe('AdminComponent', () => {
   });
 
   describe('live orders', () => {
-    afterEach(() => vi.useRealTimers());
+    it('loads the orders once over REST', async () => {
+      fixture.destroy(); // el componente del beforeEach también llamó a getAll
+      orderService.getAll.mockClear();
+      orderService.getAll.mockReturnValue(of([SAMPLE_ORDER]));
+      const c = TestBed.createComponent(AdminComponent).componentInstance;
+      await vi.waitFor(() => expect(c.orders()).toHaveLength(1));
+      expect(orderService.getAll).toHaveBeenCalledTimes(1);
+    });
 
-    const create = () => {
-      TestBed.resetTestingModule();
-      TestBed.configureTestingModule({
-        imports: [AdminComponent],
-        providers: [
-          { provide: ProductService, useClass: FakeProductService },
-          { provide: OrderService, useValue: orderService },
-        ],
-      });
-      return TestBed.createComponent(AdminComponent).componentInstance;
-    };
+    it('adds an order placed by a customer as soon as the event arrives', async () => {
+      orderService.getAll.mockReturnValue(of([SAMPLE_ORDER]));
+      const c = TestBed.createComponent(AdminComponent).componentInstance;
+      await vi.waitFor(() => expect(c.orders()).toHaveLength(1));
 
-    it('shows orders placed by customers after the next poll, without reloading', async () => {
-      vi.useFakeTimers();
-      const second: Order = { ...SAMPLE_ORDER, id: 2 };
-      orderService.getAll = vi.fn().mockReturnValueOnce(of([SAMPLE_ORDER])).mockReturnValue(of([second, SAMPLE_ORDER]));
-      const c = create();
+      realtime.events.next({
+        type: 'order.created',
+        order: apiOrder({ id: 2, created_at: '2023-11-15T10:00:00' }),
+      } as ServerEvent);
 
-      await vi.advanceTimersByTimeAsync(0);
+      expect(c.orders().map(o => o.id)).toEqual([2, 1]);
+    });
+
+    it('applies a status change made elsewhere', async () => {
+      orderService.getAll.mockReturnValue(of([SAMPLE_ORDER]));
+      const c = TestBed.createComponent(AdminComponent).componentInstance;
+      await vi.waitFor(() => expect(c.orders()).toHaveLength(1));
+
+      realtime.events.next({ type: 'order.updated', order: apiOrder({ status: 'entregado' }) } as ServerEvent);
+
+      expect(c.orders()[0].status).toBe('entregado');
+    });
+
+    it('keeps a live event that arrives while the initial load is still pending', async () => {
+      const pending = new Subject<Order[]>();
+      orderService.getAll.mockReturnValue(pending.asObservable());
+      const c = TestBed.createComponent(AdminComponent).componentInstance;
+
+      realtime.events.next({ type: 'order.updated', order: apiOrder({ status: 'entregado' }) } as ServerEvent);
+      pending.next([SAMPLE_ORDER]); // instantánea más antigua: sigue "pendiente"
+      pending.complete();
+
+      await vi.waitFor(() => expect(c.orders()).toHaveLength(1));
+      expect(c.orders()[0].status).toBe('entregado');
+    });
+
+    it('reflects its own status change immediately, even if the socket is down', async () => {
+      orderService.getAll.mockReturnValue(of([SAMPLE_ORDER]));
+      const c = TestBed.createComponent(AdminComponent).componentInstance;
+      await vi.waitFor(() => expect(c.orders()).toHaveLength(1));
+
+      await c.changeStatus(c.orders()[0], 'listo');
+
+      expect(orderService.updateStatus).toHaveBeenCalledWith(1, 'listo');
+      expect(c.orders()[0].status).toBe('listo');
+    });
+
+    it('does not change the list when the status update fails', async () => {
+      orderService.getAll.mockReturnValue(of([SAMPLE_ORDER]));
+      orderService.updateStatus.mockRejectedValue(new Error('offline'));
+      const c = TestBed.createComponent(AdminComponent).componentInstance;
+      await vi.waitFor(() => expect(c.orders()).toHaveLength(1));
+
+      await c.changeStatus(c.orders()[0], 'listo');
+
+      expect(c.orders()[0].status).toBe('pendiente');
+      expect(c.orderError()).toContain('offline');
+    });
+
+    it('reloads after a reconnection and keeps the last orders if that fails', async () => {
+      fixture.destroy(); // que el componente del beforeEach no consuma las respuestas ni escuche la reconexión
+      orderService.getAll.mockReturnValueOnce(of([SAMPLE_ORDER])).mockReturnValueOnce(throwError(() => new Error('offline')));
+      const c = TestBed.createComponent(AdminComponent).componentInstance;
+      await vi.waitFor(() => expect(c.orders()).toHaveLength(1));
+
+      realtime.reconnected.next();
+
+      await vi.waitFor(() => expect(c.ordersLoadError()).toBe('offline'));
       expect(c.orders()).toHaveLength(1);
-      await vi.advanceTimersByTimeAsync(10_000);
-      expect(c.orders()).toHaveLength(2);
-    });
-
-    it('keeps an admin status change even if a poll that started earlier still returns the old status', async () => {
-      vi.useFakeTimers();
-      orderService.getAll = vi.fn().mockReturnValue(of([SAMPLE_ORDER])); // el servidor sigue diciendo "pendiente"
-      const c = create();
-      await vi.advanceTimersByTimeAsync(0);
-
-      await c.changeStatus(SAMPLE_ORDER, 'listo');
-      await vi.advanceTimersByTimeAsync(10_000);
-
-      expect(c.statusOf(SAMPLE_ORDER)).toBe('listo');
-    });
-
-    it('follows the server again once it reports the new status, so other changes are not hidden', async () => {
-      vi.useFakeTimers();
-      const listo: Order = { ...SAMPLE_ORDER, status: 'listo' };
-      orderService.getAll = vi.fn().mockReturnValueOnce(of([SAMPLE_ORDER])).mockReturnValueOnce(of([listo])).mockReturnValue(of([{ ...SAMPLE_ORDER, status: 'entregado' }]));
-      const c = create();
-      await vi.advanceTimersByTimeAsync(0);
-      await c.changeStatus(SAMPLE_ORDER, 'listo');
-
-      await vi.advanceTimersByTimeAsync(10_000); // el servidor confirma "listo": el override se retira
-      await vi.advanceTimersByTimeAsync(10_000); // otro cambio externo a "entregado"
-      expect(c.statusOf(c.orders()[0])).toBe('entregado');
-    });
-
-    it('keeps the last orders and reports the error when a refresh fails', async () => {
-      vi.useFakeTimers();
-      orderService.getAll = vi.fn().mockReturnValueOnce(of([SAMPLE_ORDER])).mockReturnValueOnce(throwError(() => new Error('offline'))).mockReturnValue(of([SAMPLE_ORDER]));
-      const c = create();
-
-      await vi.advanceTimersByTimeAsync(0);
-      await vi.advanceTimersByTimeAsync(10_000);
-      expect(c.orders()).toHaveLength(1);
-      expect(c.ordersLoadError()).toBe('offline');
-      await vi.advanceTimersByTimeAsync(10_000);
-      expect(c.ordersLoadError()).toBe('');
     });
   });
 });

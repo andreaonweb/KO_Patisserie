@@ -1,0 +1,181 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.chat {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.chat__fab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border: 0;
+  border-radius: $radius-pill;
+  background: $text-dark;
+  color: $cream;
+  cursor: pointer;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: 0 8px 24px rgba(74, 63, 63, 0.25);
+
+  &:hover {
+    background: $ink-hover;
+  }
+}
+
+.chat__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: $radius-pill;
+  background: $primary;
+  color: $text-dark;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.chat__panel {
+  display: flex;
+  flex-direction: column;
+  width: min(360px, calc(100vw - 32px));
+  height: min(480px, calc(100vh - 140px));
+  overflow: hidden;
+  background: $cream;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  box-shadow: 0 16px 40px rgba(74, 63, 63, 0.22);
+  @include fade-in;
+}
+
+.chat__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid $border;
+
+  h2 {
+    font-size: 22px;
+  }
+}
+
+.chat__close {
+  display: flex;
+  padding: 8px;
+  border: 1px solid $border;
+  border-radius: $radius-pill;
+  background: none;
+  color: $text-dark;
+  cursor: pointer;
+
+  &:hover {
+    background: $secondary;
+  }
+}
+
+.chat__list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  overflow-y: auto;
+}
+
+.chat__note {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: $text-muted;
+
+  &--error {
+    color: $rose;
+  }
+}
+
+.chat__msg {
+  align-self: flex-start;
+  max-width: 82%;
+  padding: 9px 13px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 14px 14px 14px 4px;
+
+  p {
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  time {
+    display: block;
+    margin-top: 3px;
+    font-size: 10.5px;
+    color: $text-muted;
+  }
+
+  &--mine {
+    align-self: flex-end;
+    background: $primary;
+    border-color: $primary-border;
+    border-radius: 14px 14px 4px 14px;
+  }
+}
+
+.chat__offline {
+  padding: 6px 18px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  background: $secondary;
+  color: $rose-dark;
+}
+
+.chat__form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid $border;
+  background: $white;
+}
+
+.chat__input {
+  flex: 1;
+  min-height: 40px;
+  max-height: 96px;
+  padding: 10px 12px;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  background: $cream;
+  color: $text-dark;
+  font-size: 14px;
+  resize: none;
+}
+
+.chat__send {
+  display: flex;
+  padding: 11px;
+  border: 0;
+  border-radius: $radius-pill;
+  background: $text-dark;
+  color: $cream;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}

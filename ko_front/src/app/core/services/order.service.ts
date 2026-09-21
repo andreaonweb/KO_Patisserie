@@ -11,7 +11,7 @@ interface OrderItemApiResponse {
   quantity: number;
 }
 
-interface OrderApiResponse {
+export interface OrderApiResponse {
   id: number;
   user_id: number;
   items: OrderItemApiResponse[];
@@ -42,17 +42,17 @@ export class OrderService {
   }
 
   getMine(): Observable<Order[]> {
-    return this.http.get<OrderApiResponse[]>(BASE).pipe(map(rows => rows.map(fromApi)));
+    return this.http.get<OrderApiResponse[]>(BASE).pipe(map(rows => rows.map(orderFromApi)));
   }
 
   getAll(): Observable<Order[]> {
-    return this.http.get<OrderApiResponse[]>(BASE).pipe(map(rows => rows.map(fromApi)));
+    return this.http.get<OrderApiResponse[]>(BASE).pipe(map(rows => rows.map(orderFromApi)));
   }
 
   async getById(id: number): Promise<Order | undefined> {
     try {
       const row = await firstValueFrom(this.http.get<OrderApiResponse>(`${BASE}/${id}`));
-      return fromApi(row);
+      return orderFromApi(row);
     } catch {
       return undefined;
     }
@@ -63,7 +63,7 @@ export class OrderService {
   }
 }
 
-function fromApi(row: OrderApiResponse): Order {
+export function orderFromApi(row: OrderApiResponse): Order {
   return {
     id: row.id,
     userId: row.user_id,
