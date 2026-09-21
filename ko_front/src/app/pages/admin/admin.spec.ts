@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { AdminComponent } from './admin';
 import { ProductService } from '../../core/services/product.service';
 import { OrderService } from '../../core/services/order.service';
@@ -277,6 +277,72 @@ describe('AdminComponent', () => {
       await component.onImageSelected(input(jpg()));
       component.removeImage();
       expect(component.form.controls.imageUrl.value).toBe('');
+    });
+  });
+
+  describe('live orders', () => {
+    afterEach(() => vi.useRealTimers());
+
+    const create = () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [AdminComponent],
+        providers: [
+          { provide: ProductService, useClass: FakeProductService },
+          { provide: OrderService, useValue: orderService },
+        ],
+      });
+      return TestBed.createComponent(AdminComponent).componentInstance;
+    };
+
+    it('shows orders placed by customers after the next poll, without reloading', async () => {
+      vi.useFakeTimers();
+      const second: Order = { ...SAMPLE_ORDER, id: 2 };
+      orderService.getAll = vi.fn().mockReturnValueOnce(of([SAMPLE_ORDER])).mockReturnValue(of([second, SAMPLE_ORDER]));
+      const c = create();
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(c.orders()).toHaveLength(1);
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(c.orders()).toHaveLength(2);
+    });
+
+    it('keeps an admin status change even if a poll that started earlier still returns the old status', async () => {
+      vi.useFakeTimers();
+      orderService.getAll = vi.fn().mockReturnValue(of([SAMPLE_ORDER])); // el servidor sigue diciendo "pendiente"
+      const c = create();
+      await vi.advanceTimersByTimeAsync(0);
+
+      await c.changeStatus(SAMPLE_ORDER, 'listo');
+      await vi.advanceTimersByTimeAsync(10_000);
+
+      expect(c.statusOf(SAMPLE_ORDER)).toBe('listo');
+    });
+
+    it('follows the server again once it reports the new status, so other changes are not hidden', async () => {
+      vi.useFakeTimers();
+      const listo: Order = { ...SAMPLE_ORDER, status: 'listo' };
+      orderService.getAll = vi.fn().mockReturnValueOnce(of([SAMPLE_ORDER])).mockReturnValueOnce(of([listo])).mockReturnValue(of([{ ...SAMPLE_ORDER, status: 'entregado' }]));
+      const c = create();
+      await vi.advanceTimersByTimeAsync(0);
+      await c.changeStatus(SAMPLE_ORDER, 'listo');
+
+      await vi.advanceTimersByTimeAsync(10_000); // el servidor confirma "listo": el override se retira
+      await vi.advanceTimersByTimeAsync(10_000); // otro cambio externo a "entregado"
+      expect(c.statusOf(c.orders()[0])).toBe('entregado');
+    });
+
+    it('keeps the last orders and reports the error when a refresh fails', async () => {
+      vi.useFakeTimers();
+      orderService.getAll = vi.fn().mockReturnValueOnce(of([SAMPLE_ORDER])).mockReturnValueOnce(throwError(() => new Error('offline'))).mockReturnValue(of([SAMPLE_ORDER]));
+      const c = create();
+
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(c.orders()).toHaveLength(1);
+      expect(c.ordersLoadError()).toBe('offline');
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(c.ordersLoadError()).toBe('');
     });
   });
 });

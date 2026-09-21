@@ -1,9 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { catchError, of } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
+import { pollWhileVisible } from '../../core/utils/poll';
 import type { Order } from '../../core/models/order.model';
 
 @Component({
@@ -17,14 +17,18 @@ export class OrdersComponent {
   private orderService = inject(OrderService);
 
   loadError = signal('');
+  orders = signal<Order[]>([]);
 
-  orders = toSignal(
-    this.orderService.getMine().pipe(
-      catchError(e => {
-        this.loadError.set((e.message ?? 'Error al cargar tus pedidos'));
-        return of([] as Order[]);
-      })
-    ),
-    { initialValue: [] as Order[] }
-  );
+  constructor() {
+    // Así el cliente ve los cambios de estado que hace el admin sin recargar la página.
+    pollWhileVisible(
+      () => this.orderService.getMine(),
+      e => this.loadError.set(e.message ?? 'Error al cargar tus pedidos')
+    )
+      .pipe(takeUntilDestroyed())
+      .subscribe(rows => {
+        this.loadError.set('');
+        this.orders.set(rows);
+      });
+  }
 }
