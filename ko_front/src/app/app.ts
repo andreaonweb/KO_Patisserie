@@ -9,13 +9,13 @@ import { FooterComponent } from './shared/components/footer/footer';
   imports: [RouterOutlet, NavbarComponent, FooterComponent],
   template: `
     <app-navbar />
-    <main>
+    <main id="contenido">
       <router-outlet />
     </main>
     <app-footer />
   `,
   styles: [`
-    main { min-height: calc(100vh - 140px); }
+    main { display: block; min-height: 70vh; }
   `]
 })
 export class App { }

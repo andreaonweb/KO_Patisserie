@@ -9,67 +9,46 @@
 @mixin card {
   background: $white;
   border-radius: $radius-md;
-  box-shadow: $shadow-card;
   border: 1px solid $border;
 }
 
-@mixin btn-primary {
-  background: linear-gradient(135deg, $primary, darken($primary, 8%));
-  color: $white;
-  border: none;
-  border-radius: $radius-xl;
-  padding: 0.75rem 2rem;
-  font-family: $font-main;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  letter-spacing: 0.02em;
+@mixin eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: $green;
+}
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: $shadow-soft;
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
+@mixin stripes($a: $secondary, $b: $cream, $angle: 135deg, $size: 12px) {
+  background: repeating-linear-gradient(
+    $angle,
+    $a 0 $size,
+    $b $size $size * 2
+  );
 }
 
 @mixin fade-in($delay: 0s) {
-  animation: fadeInUp 0.6s ease $delay both;
+  animation: koFade 0.45s ease $delay both;
 }
 
-@keyframes fadeInUp {
+@keyframes koFade {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes spin {
+@keyframes koSlide {
   from {
-    transform: rotate(0deg);
+    transform: translateX(100%);
   }
 
   to {
-    transform: rotate(360deg);
+    transform: none;
   }
 }

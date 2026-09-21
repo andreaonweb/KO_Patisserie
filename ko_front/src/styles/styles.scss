@@ -1,5 +1,6 @@
 @use 'variables' as *;
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
+@use 'mixins' as *;
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap');
 
 *,
 *::before,
@@ -18,37 +19,185 @@ body {
   background-color: $cream;
   color: $text-dark;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
 h2,
 h3 {
   font-family: $font-title;
+  font-weight: 400;
 }
 
 a {
   text-decoration: none;
-  color: inherit;
+  color: $rose;
+}
+
+a:hover {
+  color: $text-dark;
+  text-decoration: underline;
 }
 
 input,
-button {
-  font-family: $font-main;
+button,
+select,
+textarea {
+  font-family: inherit;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
+:focus-visible {
+  outline: 2px solid $green;
+  outline-offset: 3px;
+  border-radius: $radius-sm;
 }
 
-::-webkit-scrollbar-track {
-  background: $secondary;
+// ── Layout compartido ──
+.page {
+  padding: clamp(40px, 5vw, 72px) $gutter;
+  @include fade-in;
 }
 
-::-webkit-scrollbar-thumb {
+.eyebrow {
+  @include eyebrow;
+  margin-bottom: 14px;
+}
+
+.page-title {
+  font-weight: 300;
+  font-size: clamp(40px, 5vw, 66px);
+  line-height: 1.05;
+  color: $text-dark;
+  margin-bottom: 10px;
+}
+
+.lead {
+  max-width: 52ch;
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: $text-muted;
+}
+
+// ── Botones ──
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: $radius-pill;
+  cursor: pointer;
+  font-size: 12.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 15px 30px;
+  border: 1px solid transparent;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  @extend .btn;
   background: $primary;
-  border-radius: 10px;
+  border-color: $primary-border;
+  color: $text-dark;
+  font-weight: 500;
+
+  &:hover:not(:disabled) {
+    background: $primary-hover;
+    color: $text-dark;
+  }
 }
 
-lucide-icon svg {
-  stroke: currentColor;
+.btn-dark {
+  @extend .btn;
+  background: $text-dark;
+  border-color: $text-dark;
+  color: $cream;
+
+  &:hover:not(:disabled) {
+    background: $ink-hover;
+    color: $cream;
+  }
+}
+
+.btn-ghost {
+  @extend .btn;
+  background: transparent;
+  border-color: $accent;
+  color: $green;
+
+  &:hover:not(:disabled) {
+    background: $accent-light;
+    color: $green;
+  }
+}
+
+// ── Formularios ──
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: $text-muted;
+
+  input,
+  select,
+  textarea {
+    font-size: 14.5px;
+    color: $text-dark;
+    background: $cream;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    padding: 11px 12px;
+    letter-spacing: 0;
+    text-transform: none;
+    width: 100%;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 84px;
+  }
+}
+
+.msg-error {
+  font-size: 12.5px;
+  color: $rose;
+}
+
+// ── Estado de pedido ──
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: $radius-pill;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: $secondary;
+  color: $rose-dark;
+  border: 1px solid $primary;
+
+  &--listo {
+    background: $accent-light;
+    color: $green-dark;
+    border-color: $accent;
+  }
+
+  &--entregado {
+    background: #f2ede7;
+    color: #5c5049;
+    border-color: #ded2c6;
+  }
 }
