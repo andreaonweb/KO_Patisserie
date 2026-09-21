@@ -9,6 +9,9 @@
 npm-debug.log
 yarn-error.log
 
+# Configuración local del front (claves de TMB); la plantilla es environment.example.ts
+/ko_front/src/environments/environment.ts
+
 # IDEs and editors
 .idea/
 .project
