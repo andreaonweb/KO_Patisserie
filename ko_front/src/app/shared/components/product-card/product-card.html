@@ -1,8 +1,14 @@
-<div class="card">
-  @if (product().isNew) {
-  <span class="card__badge">✨ Nuevo</span>
-  }
-  <div class="card__emoji">{{ product().emoji }}</div>
+<article class="card" [class.card--compact]="compact()">
+  <div class="card__media">
+    @if (product().imageUrl) {
+    <img class="card__img" [src]="product().imageUrl" [alt]="product().name" loading="lazy" />
+    } @else {
+    <app-product-icon class="card__emoji" [category]="product().category" [size]="compact() ? 30 : 56" />
+    }
+    @if (product().isNew) {
+    <span class="card__badge">Nuevo</span>
+    }
+  </div>
   <div class="card__info">
     <h3 class="card__name">{{ product().name }}</h3>
     <p class="card__desc">{{ product().description }}</p>
@@ -10,10 +16,18 @@
       <span class="card__price">{{ product().price | currency:'EUR' }}</span>
       <div class="card__actions">
         @if (inCart()) {
-        <button class="card__btn card__btn--remove" (click)="onRemove.emit(product())">− Quitar</button>
+        <div class="card__stepper" role="group" [attr.aria-label]="'Cantidad de ' + product().name">
+          <button type="button" (click)="onRemove.emit(product())"
+            [attr.aria-label]="'Quitar una unidad de ' + product().name">−</button>
+          <span class="card__qty" aria-live="polite">{{ quantity() }}</span>
+          <button type="button" (click)="onAdd.emit(product())"
+            [attr.aria-label]="'Añadir una unidad de ' + product().name">+</button>
+        </div>
+        } @else {
+        <button type="button" class="card__btn" (click)="onAdd.emit(product())"
+          [attr.aria-label]="'Añadir ' + product().name + ' al carrito'">Añadir</button>
         }
-        <button class="card__btn" (click)="onAdd.emit(product())">+ Añadir</button>
       </div>
     </div>
   </div>
-</div>
+</article>
