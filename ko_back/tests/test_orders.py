@@ -20,7 +20,7 @@ def test_create_order_computes_total_from_product_price(client, customer_token, 
             "items": [{"product_id": product.id, "quantity": 2}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -39,7 +39,7 @@ def test_create_order_ignores_any_client_supplied_price_or_name(client, customer
             "items": [{"product_id": product.id, "quantity": 1, "price": 999, "name": "hack"}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -56,7 +56,7 @@ def test_create_order_with_unknown_product_returns_404(client, customer_token) -
             "items": [{"product_id": 999, "quantity": 1}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -71,7 +71,7 @@ def test_create_order_unauthenticated_returns_401(client, db_session) -> None:
             "items": [{"product_id": product.id, "quantity": 1}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
     )
     assert response.status_code == 401
@@ -85,7 +85,7 @@ def test_create_order_with_zero_quantity_returns_422(client, customer_token, db_
             "items": [{"product_id": product.id, "quantity": 0}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -95,7 +95,7 @@ def test_create_order_with_zero_quantity_returns_422(client, customer_token, db_
 def test_create_order_with_no_items_returns_422(client, customer_token) -> None:
     response = client.post(
         "/orders",
-        json={"items": [], "pickup_name": "Ana", "pickup_phone": "600111222", "pickup_time": "Hoy 18:00"},
+        json={"items": [], "pickup_name": "Ana", "pickup_phone": "600111222", "pickup_time": "2026-09-22T18:00"},
         headers=_auth_header(customer_token),
     )
     assert response.status_code == 422
@@ -109,7 +109,7 @@ def test_list_orders_as_admin_sees_all_users_orders(client, admin_token, custome
             "items": [{"product_id": product.id, "quantity": 1}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -126,7 +126,7 @@ def test_list_orders_as_customer_sees_only_own_orders(client, customer_token, db
             "items": [{"product_id": product.id, "quantity": 1}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -138,7 +138,7 @@ def test_list_orders_as_customer_sees_only_own_orders(client, customer_token, db
             "items": [{"product_id": product.id, "quantity": 1}],
             "pickup_name": "Otro",
             "pickup_phone": "600333444",
-            "pickup_time": "Hoy 19:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(other_token),
     )
@@ -157,7 +157,7 @@ def test_get_order_as_owner_returns_200(client, customer_token, db_session) -> N
             "items": [{"product_id": product.id, "quantity": 1}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -174,7 +174,7 @@ def test_get_order_as_admin_returns_200(client, admin_token, customer_token, db_
             "items": [{"product_id": product.id, "quantity": 1}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -191,7 +191,7 @@ def test_get_order_as_different_customer_returns_404(client, customer_token, db_
             "items": [{"product_id": product.id, "quantity": 1}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -215,7 +215,7 @@ def test_update_order_status_as_admin_returns_200(client, admin_token, customer_
             "items": [{"product_id": product.id, "quantity": 1}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -235,7 +235,7 @@ def test_update_order_status_as_customer_returns_403(client, customer_token, db_
             "items": [{"product_id": product.id, "quantity": 1}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -261,7 +261,7 @@ def test_update_order_status_with_invalid_value_returns_422(
             "items": [{"product_id": product.id, "quantity": 1}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )
@@ -282,7 +282,7 @@ def test_list_orders_returns_newest_first(client, customer_token, db_session) ->
                 "items": [{"product_id": product.id, "quantity": 1}],
                 "pickup_name": pickup_name,
                 "pickup_phone": "600111222",
-                "pickup_time": "Hoy 18:00",
+                "pickup_time": "2026-09-22T18:00",
             },
             headers=_auth_header(customer_token),
         )
@@ -303,7 +303,7 @@ def test_deleting_product_preserves_existing_order_snapshot(
             "items": [{"product_id": product.id, "quantity": 1}],
             "pickup_name": "Ana",
             "pickup_phone": "600111222",
-            "pickup_time": "Hoy 18:00",
+            "pickup_time": "2026-09-22T18:00",
         },
         headers=_auth_header(customer_token),
     )

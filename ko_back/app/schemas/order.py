@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
+from app.core.pickup import validate_pickup_time
 from app.models.order import OrderStatus
 
 
@@ -15,6 +16,11 @@ class OrderCreate(BaseModel):
     pickup_name: str
     pickup_phone: str
     pickup_time: str
+
+    @field_validator("pickup_time")
+    @classmethod
+    def _pickup_time_in_opening_hours(cls, value: str) -> str:
+        return validate_pickup_time(value)
 
 
 class OrderItemResponse(BaseModel):
