@@ -27,23 +27,30 @@
   <p class="menu__empty">Nada coincide con tu búsqueda. Prueba con otros filtros.</p>
   }
 
-  @if (sweets().length > 0) {
-  <h2 class="menu__section">Dulces</h2>
-  <div class="menu__grid">
-    @for (product of sweets(); track product.id) {
-    <app-product-card [product]="product" [cartItems]="cartItems()" (onAdd)="addToCart($event)"
-      (onRemove)="removeFromCart($event)" />
-    }
-  </div>
-  }
+  <div #content class="menu__content">
+    @for (section of sections(); track section.key) {
+    <section class="menu__block" [id]="'menu-' + section.key" [attr.aria-labelledby]="'menu-' + section.key + '-title'">
+      <h2 class="menu__section" [id]="'menu-' + section.key + '-title'">
+        {{ section.title }}
+        <span class="menu__count">{{ section.total }} {{ section.total === 1 ? 'producto' : 'productos' }}</span>
+      </h2>
 
-  @if (drinks().length > 0) {
-  <h2 class="menu__section">Bebidas</h2>
-  <div class="menu__grid menu__grid--drinks">
-    @for (product of drinks(); track product.id) {
-    <app-product-card [product]="product" [cartItems]="cartItems()" [compact]="true" (onAdd)="addToCart($event)"
-      (onRemove)="removeFromCart($event)" />
+      <div class="menu__grid" [class.menu__grid--drinks]="section.compact">
+        @for (product of section.items; track product.id) {
+        <app-product-card [product]="product" [cartItems]="cartItems()" [compact]="section.compact"
+          (onAdd)="addToCart($event)" (onRemove)="removeFromCart($event)" />
+        }
+      </div>
+
+      @if (section.pageCount > 1) {
+      <nav class="menu__pager" [attr.aria-label]="'Paginación de ' + section.title.toLowerCase()">
+        <button type="button" (click)="goToPage(section.key, section.page - 1)" [disabled]="section.page === 1">Anterior</button>
+        <span aria-live="polite">Página {{ section.page }} de {{ section.pageCount }}</span>
+        <button type="button" (click)="goToPage(section.key, section.page + 1)"
+          [disabled]="section.page === section.pageCount">Siguiente</button>
+      </nav>
+      }
+    </section>
     }
   </div>
-  }
 </section>

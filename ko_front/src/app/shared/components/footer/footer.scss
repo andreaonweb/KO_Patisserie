@@ -9,6 +9,8 @@
   line-height: 1.75;
 
   a {
+    display: inline-block;
+    padding-block: 4px; // objetivo táctil de al menos 24px (WCAG 2.5.8)
     color: $primary;
 
     &:hover {
@@ -75,5 +77,16 @@
     font-size: 0.75rem;
     letter-spacing: 0.06em;
     color: #d9c6ce;
+  }
+}
+
+// En pantallas táctiles los enlaces llegan a los 44px recomendados.
+@media (pointer: coarse) {
+  .footer a {
+    padding-block: 12px;
+  }
+
+  .footer__links {
+    gap: 0;
   }
 }
