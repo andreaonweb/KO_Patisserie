@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_admin
+from app.core.realtime import manager, publish_sync
 from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.models.user import User, UserRole
@@ -55,10 +56,12 @@ def create_order(
     db.add(order)
     db.commit()
     db.refresh(order)
-    return _to_response(order)
+    response = _to_response(order)
+    publish_sync(manager.send_to_admins, {"type": "order.created", "order": response.model_dump(mode="json")})
+    return response
 
 
-@router.get("", response_model=list[OrderResponse])
+@router.get("",response_model=list[OrderResponse])
 def list_orders(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ) -> list[OrderResponse]:
@@ -91,4 +94,8 @@ def update_order_status(
     order.status = body.status
     db.commit()
     db.refresh(order)
-    return _to_response(order)
+    response = _to_response(order)
+    event = {"type": "order.updated", "order": response.model_dump(mode="json")}
+    publish_sync(manager.send_to_user, order.user_id, event)
+    publish_sync(manager.send_to_admins, event)
+    return response
