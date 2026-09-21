@@ -8,6 +8,7 @@
     }
     @for (t of chat.threads(); track t.customerId) {
     <button type="button" class="achat__thread" [class.achat__thread--active]="chat.activeCustomerId() === t.customerId"
+      [attr.aria-current]="chat.activeCustomerId() === t.customerId ? 'true' : null"
       (click)="chat.openThread(t.customerId)">
       <span class="achat__who">{{ t.customerEmail }}</span>
       <span class="achat__last">{{ t.lastMessage.body }}</span>

@@ -3,7 +3,7 @@ $primary: #f9c4d2; // rosa sakura
 $primary-border: #efaec1;
 $primary-hover: #f6b3c5;
 $secondary: #fde8f0; // rosa pálido
-$rose: #a35d76;
+$rose: #9a5470; // oscurecido para llegar a 4.5:1 sobre rosa pálido
 $rose-dark: #8c4a62;
 $green: #3f6b57;
 $green-dark: #2f5a46;
@@ -15,6 +15,7 @@ $text-muted: #6f6060;
 $ink-hover: #2f2727;
 $white: #ffffff;
 $border: #f0dde5;
+$border-input: #857878; // 3:1 mínimo sobre crema, blanco y rosa pálido (WCAG 1.4.11)
 $border-soft: #f7ecec;
 
 // === TIPOGRAFÍA ===

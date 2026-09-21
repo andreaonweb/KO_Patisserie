@@ -65,7 +65,7 @@ textarea {
 
 .page-title {
   font-weight: 300;
-  font-size: clamp(40px, 5vw, 66px);
+  font-size: clamp(2.5rem, 5vw, 4.125rem);
   line-height: 1.05;
   color: $text-dark;
   margin-bottom: 10px;
@@ -73,7 +73,7 @@ textarea {
 
 .lead {
   max-width: 52ch;
-  font-size: 15.5px;
+  font-size: 0.9688rem;
   line-height: 1.7;
   color: $text-muted;
 }
@@ -86,7 +86,7 @@ textarea {
   gap: 10px;
   border-radius: $radius-pill;
   cursor: pointer;
-  font-size: 12.5px;
+  font-size: 0.7812rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 15px 30px;
@@ -146,7 +146,7 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  font-size: 11px;
+  font-size: 0.75rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: $text-muted;
@@ -154,10 +154,10 @@ textarea {
   input,
   select,
   textarea {
-    font-size: 14.5px;
+    font-size: 0.9062rem;
     color: $text-dark;
     background: $cream;
-    border: 1px solid $border;
+    border: 1px solid $border-input;
     border-radius: $radius-sm;
     padding: 11px 12px;
     letter-spacing: 0;
@@ -172,7 +172,7 @@ textarea {
 }
 
 .msg-error {
-  font-size: 12.5px;
+  font-size: 0.7812rem;
   color: $rose;
 }
 
@@ -182,7 +182,7 @@ textarea {
   align-items: center;
   padding: 6px 14px;
   border-radius: $radius-pill;
-  font-size: 10.5px;
+  font-size: 0.75rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   background: $secondary;
@@ -199,5 +199,40 @@ textarea {
     background: #f2ede7;
     color: #5c5049;
     border-color: #ded2c6;
+  }
+}
+
+// ── Accesibilidad ──
+// Placeholder legible (el gris por defecto del navegador se queda en ~4.4:1 sobre crema).
+::placeholder {
+  color: $text-muted;
+  opacity: 1;
+}
+
+// Texto solo para lectores de pantalla.
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Quien pide menos movimiento no debería ver animaciones ni desplazamientos suaves.
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
