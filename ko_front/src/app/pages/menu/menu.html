@@ -28,22 +28,29 @@
   }
 
   <div #content class="menu__content">
-    @for (group of groups(); track group.section) {
-    <h2 class="menu__section">{{ group.title }}</h2>
-    <div class="menu__grid" [class.menu__grid--drinks]="group.section === 'bebidas'">
-      @for (product of group.items; track product.id) {
-      <app-product-card [product]="product" [cartItems]="cartItems()" [compact]="group.section === 'bebidas'"
-        (onAdd)="addToCart($event)" (onRemove)="removeFromCart($event)" />
+    @for (section of sections(); track section.key) {
+    <section class="menu__block" [id]="'menu-' + section.key" [attr.aria-labelledby]="'menu-' + section.key + '-title'">
+      <h2 class="menu__section" [id]="'menu-' + section.key + '-title'">
+        {{ section.title }}
+        <span class="menu__count">{{ section.total }} {{ section.total === 1 ? 'producto' : 'productos' }}</span>
+      </h2>
+
+      <div class="menu__grid" [class.menu__grid--drinks]="section.compact">
+        @for (product of section.items; track product.id) {
+        <app-product-card [product]="product" [cartItems]="cartItems()" [compact]="section.compact"
+          (onAdd)="addToCart($event)" (onRemove)="removeFromCart($event)" />
+        }
+      </div>
+
+      @if (section.pageCount > 1) {
+      <nav class="menu__pager" [attr.aria-label]="'Paginación de ' + section.title.toLowerCase()">
+        <button type="button" (click)="goToPage(section.key, section.page - 1)" [disabled]="section.page === 1">Anterior</button>
+        <span aria-live="polite">Página {{ section.page }} de {{ section.pageCount }}</span>
+        <button type="button" (click)="goToPage(section.key, section.page + 1)"
+          [disabled]="section.page === section.pageCount">Siguiente</button>
+      </nav>
       }
-    </div>
+    </section>
     }
   </div>
-
-  @if (pageCount() > 1) {
-  <nav class="menu__pager" aria-label="Paginación de la carta">
-    <button type="button" (click)="goToPage(page() - 1)" [disabled]="page() === 1">Anterior</button>
-    <span aria-live="polite">Página {{ page() }} de {{ pageCount() }}</span>
-    <button type="button" (click)="goToPage(page() + 1)" [disabled]="page() === pageCount()">Siguiente</button>
-  </nav>
-  }
 </section>

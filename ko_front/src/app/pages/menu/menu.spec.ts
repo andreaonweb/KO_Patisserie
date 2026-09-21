@@ -31,113 +31,134 @@ describe('Menu', () => {
     expect(component.products()).toEqual([]);
   });
 
-  describe('pagination (two rows per page)', () => {
+  describe('sections with their own pagination (two rows per page)', () => {
     const product = (id: number, category: Product['category'], name = `Producto ${id}`): Product => ({
       id, name, category, price: 3, description: 'x', emoji: '',
     });
-    // 8 dulces + 3 bebidas. Con las columnas por defecto (3 de dulces, 2 de bebidas): 3+3+2 filas de dulces y 2+1 de bebidas.
-    const load = () => {
+    // Con las columnas por defecto (3 de dulces, 2 de bebidas): dulces en páginas de 6, bebidas en páginas de 4.
+    const load = (sweets = 8, drinks = 3) => {
       const service = TestBed.inject(ProductService) as unknown as FakeProductService;
       service.products.set([
-        ...Array.from({ length: 8 }, (_, i) => product(i + 1, 'mochi', `Dulce ${i + 1}`)),
-        ...Array.from({ length: 3 }, (_, i) => product(100 + i, 'drink', `Bebida ${i + 1}`)),
+        ...Array.from({ length: sweets }, (_, i) => product(i + 1, 'mochi', `Dulce ${i + 1}`)),
+        ...Array.from({ length: drinks }, (_, i) => product(100 + i, 'drink', `Bebida ${i + 1}`)),
       ]);
       component.contentWidth.set(0); // sin medir: columnas por defecto
       fixture.detectChanges();
     };
-    const cards = () => fixture.nativeElement.querySelectorAll('app-product-card').length;
-    const headings = () =>
-      (Array.from(fixture.nativeElement.querySelectorAll('.menu__section')) as HTMLElement[]).map(h => h.textContent!.trim());
-    const pagerText = () => (fixture.nativeElement.querySelector('.menu__pager span') as HTMLElement | null)?.textContent?.trim();
-    const pagerButton = (label: string) =>
-      (Array.from(fixture.nativeElement.querySelectorAll('.menu__pager button')) as HTMLButtonElement[]).find(b =>
+    const section = (key: string) => (fixture.nativeElement as HTMLElement).querySelector(`#menu-${key}`) as HTMLElement | null;
+    const cards = (key: string) => section(key)?.querySelectorAll('app-product-card').length ?? 0;
+    const titles = () =>
+      (Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('.menu__section')) as HTMLElement[]).map(h =>
+        h.childNodes[0].textContent!.trim()
+      );
+    const pagerText = (key: string) => (section(key)?.querySelector('.menu__pager span') as HTMLElement | null)?.textContent?.trim();
+    const pagerButton = (key: string, label: string) =>
+      (Array.from(section(key)!.querySelectorAll('.menu__pager button')) as HTMLButtonElement[]).find(b =>
         b.textContent!.includes(label)
       )!;
 
-    it('shows at most two rows on the first page', () => {
+    it('shows Dulces and Bebidas as two separate sections on the same page', () => {
       load();
-      expect(cards()).toBe(6);
-      expect(headings()).toEqual(['Dulces']);
-      expect(pagerText()).toBe('Página 1 de 3');
+      expect(titles()).toEqual(['Dulces', 'Bebidas']);
+      expect(cards('dulces')).toBe(6); // dos filas de 3
+      expect(cards('bebidas')).toBe(3);
     });
 
-    it('lets a page finish the sweets and start the drinks, each under its own heading', () => {
-      load();
-      component.goToPage(2);
-      fixture.detectChanges();
-      expect(cards()).toBe(4); // 2 dulces (fila incompleta) + 2 bebidas
-      expect(headings()).toEqual(['Dulces', 'Bebidas']);
+    it('shows how many products each section has', () => {
+      load(8, 1);
+      expect(section('dulces')!.querySelector('.menu__count')!.textContent!.trim()).toBe('8 productos');
+      expect(section('bebidas')!.querySelector('.menu__count')!.textContent!.trim()).toBe('1 producto');
     });
 
-    it('ends with the remaining row', () => {
+    it('paginates a section only when it does not fit in two rows', () => {
       load();
-      component.goToPage(3);
-      fixture.detectChanges();
-      expect(cards()).toBe(1);
-      expect(headings()).toEqual(['Bebidas']);
-      expect(pagerText()).toBe('Página 3 de 3');
+      expect(pagerText('dulces')).toBe('Página 1 de 2');
+      expect(section('bebidas')!.querySelector('.menu__pager')).toBeNull(); // 3 bebidas caben en 2 filas de 2
     });
 
-    it('disables Anterior on the first page and Siguiente on the last', () => {
-      load();
-      expect(pagerButton('Anterior').disabled).toBe(true);
-      expect(pagerButton('Siguiente').disabled).toBe(false);
-      pagerButton('Siguiente').click();
-      pagerButton('Siguiente').click();
+    it('changing the page of one section leaves the other untouched', () => {
+      load(8, 9); // bebidas: páginas de 4 -> 3 páginas
+      component.goToPage('bebidas', 2);
       fixture.detectChanges();
-      expect(pagerButton('Siguiente').disabled).toBe(true);
-      expect(pagerButton('Anterior').disabled).toBe(false);
+      expect(pagerText('bebidas')).toBe('Página 2 de 3');
+      expect(pagerText('dulces')).toBe('Página 1 de 2');
+      expect(cards('dulces')).toBe(6);
+
+      component.goToPage('dulces', 2);
+      fixture.detectChanges();
+      expect(cards('dulces')).toBe(2); // el resto: 8 - 6
+      expect(pagerText('bebidas')).toBe('Página 2 de 3');
+    });
+
+    it('disables Anterior on the first page and Siguiente on the last of each section', () => {
+      load();
+      expect(pagerButton('dulces', 'Anterior').disabled).toBe(true);
+      pagerButton('dulces', 'Siguiente').click();
+      fixture.detectChanges();
+      expect(pagerButton('dulces', 'Siguiente').disabled).toBe(true);
+      expect(pagerButton('dulces', 'Anterior').disabled).toBe(false);
     });
 
     it('clamps out-of-range pages', () => {
       load();
-      component.goToPage(99);
-      expect(component.page()).toBe(3);
-      component.goToPage(-4);
-      expect(component.page()).toBe(1);
+      component.goToPage('dulces', 99);
+      fixture.detectChanges();
+      expect(pagerText('dulces')).toBe('Página 2 de 2');
+      component.goToPage('dulces', -4);
+      fixture.detectChanges();
+      expect(pagerText('dulces')).toBe('Página 1 de 2');
     });
 
-    it('goes back to the first page when the search or filters change', () => {
-      load();
-      component.goToPage(2);
+    it('goes back to the first page of every section when the search or filters change', () => {
+      load(8, 9);
+      component.goToPage('dulces', 2);
+      component.goToPage('bebidas', 3);
       fixture.detectChanges();
+      component.query.set('dulce');
+      fixture.detectChanges();
+      expect(pagerText('dulces')).toBe('Página 1 de 2');
+      expect(section('bebidas')).toBeNull(); // ninguna bebida coincide con "dulce"
+    });
+
+    it('hides a section with no results', () => {
+      load();
       component.category.set('drink');
       fixture.detectChanges();
-      expect(component.page()).toBe(1);
-      expect(cards()).toBe(3);
-      expect(headings()).toEqual(['Bebidas']);
-    });
-
-    it('hides the pager when everything fits in two rows', () => {
-      load();
-      component.category.set('drink'); // 3 bebidas en filas de 2 = 2 filas
-      fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector('.menu__pager')).toBeNull();
-      expect(component.pageCount()).toBe(1);
+      expect(titles()).toEqual(['Bebidas']);
+      expect(section('dulces')).toBeNull();
     });
 
     it('recomputes the pages from the measured width (narrow screens have fewer columns)', () => {
       load();
-      expect(component.pageCount()).toBe(3);
-      component.contentWidth.set(400); // una columna: 8 + 3 filas
+      component.contentWidth.set(400); // una columna: páginas de 2 productos
       fixture.detectChanges();
-      expect(component.pageCount()).toBe(6);
-      expect(cards()).toBe(2);
+      expect(cards('dulces')).toBe(2);
+      expect(pagerText('dulces')).toBe('Página 1 de 4');
+      expect(pagerText('bebidas')).toBe('Página 1 de 2');
     });
 
     it('keeps the current page valid when a resize leaves fewer pages', () => {
       load();
       component.contentWidth.set(400);
-      component.goToPage(6);
-      expect(component.page()).toBe(6);
-      component.contentWidth.set(1400); // más columnas: menos páginas
-      expect(component.page()).toBeLessThanOrEqual(component.pageCount());
+      component.goToPage('dulces', 4);
+      fixture.detectChanges();
+      component.contentWidth.set(1400);
+      fixture.detectChanges();
+      const [current, total] = pagerText('dulces')?.match(/\d+/g)?.map(Number) ?? [1, 1];
+      expect(current).toBeLessThanOrEqual(total);
     });
 
-    it('labels the pager for assistive technology and announces the page politely', () => {
+    it('labels each pager for assistive technology and announces the page politely', () => {
       load();
-      expect(fixture.nativeElement.querySelector('nav.menu__pager')?.getAttribute('aria-label')).toBe('Paginación de la carta');
-      expect(fixture.nativeElement.querySelector('.menu__pager span')?.getAttribute('aria-live')).toBe('polite');
+      const nav = section('dulces')!.querySelector('nav.menu__pager')!;
+      expect(nav.getAttribute('aria-label')).toBe('Paginación de dulces');
+      expect(nav.querySelector('span')!.getAttribute('aria-live')).toBe('polite');
+    });
+
+    it('names each section region by its heading', () => {
+      load();
+      const labelledBy = section('dulces')!.getAttribute('aria-labelledby')!;
+      expect(fixture.nativeElement.querySelector(`#${labelledBy}`).textContent).toContain('Dulces');
     });
   });
 });

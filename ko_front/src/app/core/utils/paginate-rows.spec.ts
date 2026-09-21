@@ -1,6 +1,6 @@
-import { buildRows, columnsFor, pageCount, pageGroups } from './paginate-rows';
+import { columnsFor, pageCount, pageItems, pageSize } from './paginate-rows';
 
-const range = (n: number, prefix = 'p') => Array.from({ length: n }, (_, i) => `${prefix}${i + 1}`);
+const range = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
 
 describe('columnsFor', () => {
   // Mismas cifras que el CSS de la carta: tarjetas de 250px con hueco de 26px.
@@ -22,76 +22,46 @@ describe('columnsFor', () => {
   });
 });
 
-describe('buildRows', () => {
-  it('splits every section into rows of its own column count, in section order', () => {
-    const rows = buildRows([
-      { key: 'dulces', items: range(5), columns: 3 },
-      { key: 'bebidas', items: range(3, 'b'), columns: 2 },
-    ]);
-    expect(rows.map(r => [r.section, r.items.length])).toEqual([
-      ['dulces', 3],
-      ['dulces', 2],
-      ['bebidas', 2],
-      ['bebidas', 1],
-    ]);
+describe('pageSize / pageCount', () => {
+  it('a page holds rows x columns items', () => {
+    expect(pageSize(4, 2)).toBe(8);
+    expect(pageSize(1, 2)).toBe(2);
   });
 
-  it('skips empty sections and never loops on a zero column count', () => {
-    expect(buildRows([{ key: 'a', items: [], columns: 3 }])).toEqual([]);
-    expect(buildRows([{ key: 'a', items: range(2), columns: 0 }]).length).toBe(2);
+  it('never divides by zero', () => {
+    expect(pageSize(0, 2)).toBe(2);
+    expect(pageSize(3, 0)).toBe(3);
   });
-});
 
-describe('pageCount', () => {
-  it('is at least one page', () => {
-    expect(pageCount(0, 2)).toBe(1);
-    expect(pageCount(1, 2)).toBe(1);
-    expect(pageCount(2, 2)).toBe(1);
-    expect(pageCount(3, 2)).toBe(2);
-    expect(pageCount(5, 2)).toBe(3);
+  it('counts pages, with at least one even when empty', () => {
+    expect(pageCount(0, 3, 2)).toBe(1);
+    expect(pageCount(6, 3, 2)).toBe(1);
+    expect(pageCount(7, 3, 2)).toBe(2);
+    expect(pageCount(13, 4, 2)).toBe(2);
+    expect(pageCount(13, 1, 2)).toBe(7);
   });
 });
 
-describe('pageGroups', () => {
-  const rows = buildRows([
-    { key: 'dulces', items: range(8), columns: 3 }, // filas: 3, 3, 2
-    { key: 'bebidas', items: range(3, 'b'), columns: 2 }, // filas: 2, 1
-  ]);
-
-  it('holds at most two rows per page', () => {
-    expect(pageCount(rows.length, 2)).toBe(3);
-    expect(pageGroups(rows, 1, 2)).toEqual([{ section: 'dulces', items: range(6) }]);
+describe('pageItems', () => {
+  it('returns the slice for each page, ending with the remainder', () => {
+    const items = range(13);
+    expect(pageItems(items, 1, 4, 2)).toEqual(range(8));
+    expect(pageItems(items, 2, 4, 2)).toEqual([9, 10, 11, 12, 13]);
+    expect(pageItems(items, 3, 4, 2)).toEqual([]);
   });
 
-  it('lets a page end one section and start the next, each under its own group', () => {
-    expect(pageGroups(rows, 2, 2)).toEqual([
-      { section: 'dulces', items: ['p7', 'p8'] },
-      { section: 'bebidas', items: ['b1', 'b2'] },
-    ]);
-  });
-
-  it('gives the remaining row on the last page', () => {
-    expect(pageGroups(rows, 3, 2)).toEqual([{ section: 'bebidas', items: ['b3'] }]);
-  });
-
-  it('never exceeds the row limit, whatever the width', () => {
+  it('never shows more than two rows and never loses or repeats an item, whatever the width', () => {
     for (const width of [300, 600, 900, 1200, 1600]) {
-      const cs = columnsFor(width, 250, 26, 3);
-      const cd = columnsFor(width, 380, 26, 2);
-      const all = buildRows([
-        { key: 'dulces', items: range(13), columns: cs },
-        { key: 'bebidas', items: range(6, 'b'), columns: cd },
-      ]);
-      const pages = pageCount(all.length, 2);
-      let seen = 0;
+      const columns = columnsFor(width, 250, 26, 3);
+      const items = range(23);
+      const pages = pageCount(items.length, columns, 2);
+      const seen: number[] = [];
       for (let p = 1; p <= pages; p++) {
-        const groups = pageGroups(all, p, 2);
-        const sweetRows = Math.ceil((groups.find(g => g.section === 'dulces')?.items.length ?? 0) / cs);
-        const drinkRows = Math.ceil((groups.find(g => g.section === 'bebidas')?.items.length ?? 0) / cd);
-        expect(sweetRows + drinkRows).toBeLessThanOrEqual(2);
-        seen += groups.reduce((n, g) => n + g.items.length, 0);
+        const shown = pageItems(items, p, columns, 2);
+        expect(Math.ceil(shown.length / columns)).toBeLessThanOrEqual(2);
+        seen.push(...shown);
       }
-      expect(seen).toBe(19); // no se pierde ni se repite ningún producto
+      expect(seen).toEqual(items);
     }
   });
 });

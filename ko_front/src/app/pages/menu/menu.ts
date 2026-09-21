@@ -14,11 +14,11 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 import { CartService } from '../../core/services/cart.service';
 import { ProductService } from '../../core/services/product.service';
 import { Product } from '../../core/models/product.model';
-import { buildRows, columnsFor, pageCount, pageGroups } from '../../core/utils/paginate-rows';
+import { columnsFor, pageCount, pageItems } from '../../core/utils/paginate-rows';
 
 type CategoryFilter = '' | Product['category'];
 
-/** Filas de productos como máximo en cada página de la carta. */
+/** Filas de productos como máximo en cada página de cada apartado. */
 const ROWS_PER_PAGE = 2;
 
 /** Medidas de la rejilla; al medir se leen de las variables CSS de `menu.scss`, que son la fuente de verdad. */
@@ -26,7 +26,7 @@ const DEFAULT_GRID = { card: 250, drink: 380, gap: 26 };
 /** Columnas que se suponen mientras no se conoce el ancho real (antes de medir). */
 const FALLBACK_COLUMNS = { sweets: 3, drinks: 2 };
 
-const SECTION_TITLES: Record<string, string> = { dulces: 'Dulces', bebidas: 'Bebidas' };
+type SectionKey = 'dulces' | 'bebidas';
 
 const normalize = (v: string): string =>
   v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -72,31 +72,40 @@ export class MenuComponent {
   drinks = computed(() => this.filtered().filter(p => p.category === 'drink'));
   hasFilters = computed(() => !!this.query() || !!this.category() || this.maxPrice() !== null);
 
-  // ── Paginación: como mucho ROWS_PER_PAGE filas por página, sea cual sea el ancho ──
+  // ── Apartados: cada uno tiene su propio paginador, con como mucho ROWS_PER_PAGE filas por página ──
   /** Ancho del contenedor de las rejillas (0 hasta que se mide). */
   contentWidth = signal(0);
   private grid = signal(DEFAULT_GRID);
-  private requestedPage = signal(1);
+  private requestedPages = signal<Record<SectionKey, number>>({ dulces: 1, bebidas: 1 });
 
-  private sweetColumns = computed(() =>
-    columnsFor(this.contentWidth(), this.grid().card, this.grid().gap, FALLBACK_COLUMNS.sweets)
-  );
-  private drinkColumns = computed(() =>
-    columnsFor(this.contentWidth(), this.grid().drink, this.grid().gap, FALLBACK_COLUMNS.drinks)
-  );
+  private columns = computed<Record<SectionKey, number>>(() => ({
+    dulces: columnsFor(this.contentWidth(), this.grid().card, this.grid().gap, FALLBACK_COLUMNS.sweets),
+    bebidas: columnsFor(this.contentWidth(), this.grid().drink, this.grid().gap, FALLBACK_COLUMNS.drinks),
+  }));
 
-  private rows = computed(() =>
-    buildRows([
-      { key: 'dulces', items: this.sweets(), columns: this.sweetColumns() },
-      { key: 'bebidas', items: this.drinks(), columns: this.drinkColumns() },
-    ])
-  );
-
-  pageCount = computed(() => pageCount(this.rows().length, ROWS_PER_PAGE));
-  page = computed(() => Math.min(this.requestedPage(), this.pageCount()));
-  groups = computed(() =>
-    pageGroups(this.rows(), this.page(), ROWS_PER_PAGE).map(g => ({ ...g, title: SECTION_TITLES[g.section] }))
-  );
+  /** Apartados con resultados (se ocultan los vacíos), ya recortados a su página actual. */
+  sections = computed(() => {
+    const all: { key: SectionKey; title: string; items: Product[] }[] = [
+      { key: 'dulces', title: 'Dulces', items: this.sweets() },
+      { key: 'bebidas', title: 'Bebidas', items: this.drinks() },
+    ];
+    return all
+      .filter(s => s.items.length > 0)
+      .map(s => {
+        const columns = this.columns()[s.key];
+        const pages = pageCount(s.items.length, columns, ROWS_PER_PAGE);
+        const page = Math.min(this.requestedPages()[s.key], pages);
+        return {
+          key: s.key,
+          title: s.title,
+          total: s.items.length,
+          compact: s.key === 'bebidas',
+          page,
+          pageCount: pages,
+          items: pageItems(s.items, page, columns, ROWS_PER_PAGE),
+        };
+      });
+  });
 
   private content = viewChild<ElementRef<HTMLElement>>('content');
 
@@ -106,7 +115,7 @@ export class MenuComponent {
       this.query();
       this.category();
       this.maxPrice();
-      untracked(() => this.requestedPage.set(1));
+      untracked(() => this.requestedPages.set({ dulces: 1, bebidas: 1 }));
     });
 
     const destroyRef = inject(DestroyRef);
@@ -122,11 +131,15 @@ export class MenuComponent {
     });
   }
 
-  goToPage(n: number): void {
-    this.requestedPage.set(Math.min(Math.max(1, n), this.pageCount()));
-    // Al cambiar de página se vuelve al principio de la carta, respetando el movimiento reducido.
+  goToPage(key: SectionKey, n: number): void {
+    const section = this.sections().find(s => s.key === key);
+    if (!section) return;
+    this.requestedPages.update(pages => ({ ...pages, [key]: Math.min(Math.max(1, n), section.pageCount) }));
+    // Al cambiar de página se vuelve al principio de ese apartado, respetando el movimiento reducido.
     const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.content()?.nativeElement.scrollIntoView?.({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    this.content()?.nativeElement
+      .querySelector(`#menu-${key}`)
+      ?.scrollIntoView?.({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   }
 
   setMaxPrice(value: string): void {
