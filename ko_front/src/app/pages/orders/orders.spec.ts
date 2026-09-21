@@ -91,6 +91,17 @@ describe('OrdersComponent', () => {
     expect(getMine).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps an event that arrives while the load is still in flight', async () => {
+    const pending = new Subject<Order[]>();
+    getMine.mockReturnValue(pending);
+    realtime.reconnected.next();
+    realtime.events.next({ type: 'order.updated', order: apiOrder({ status: 'listo' }) } as ServerEvent);
+    pending.next([{ ...SAMPLE_ORDERS[0], status: 'pendiente' }]);
+    pending.complete();
+    await vi.waitFor(() => expect(getMine).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(component.orders()[0].status).toBe('listo'));
+  });
+
   it('reports a load error and keeps the last orders', async () => {
     getMine.mockReturnValue(throwError(() => new Error('offline')));
     realtime.reconnected.next();

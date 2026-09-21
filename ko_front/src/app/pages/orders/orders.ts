@@ -5,8 +5,7 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { OrderService, orderFromApi } from '../../core/services/order.service';
 import { RealtimeService } from '../../core/services/realtime.service';
-import { upsertOrder } from '../../core/utils/orders';
-import type { Order } from '../../core/models/order.model';
+import { LiveOrderList } from '../../core/utils/orders';
 
 @Component({
   selector: 'app-orders',
@@ -20,7 +19,8 @@ export class OrdersComponent {
   private realtime = inject(RealtimeService);
 
   loadError = signal('');
-  orders = signal<Order[]>([]);
+  private feed = new LiveOrderList();
+  orders = this.feed.orders;
 
   constructor() {
     void this.load();
@@ -29,14 +29,14 @@ export class OrdersComponent {
     // Los cambios de estado que hace el admin llegan al instante.
     this.realtime.events$.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.type === 'order.updated' || event.type === 'order.created') {
-        this.orders.update(list => upsertOrder(list, orderFromApi(event.order)));
+        this.feed.apply(orderFromApi(event.order));
       }
     });
   }
 
   private async load(): Promise<void> {
     try {
-      this.orders.set(await firstValueFrom(this.orderService.getMine()));
+      await this.feed.load(() => firstValueFrom(this.orderService.getMine()));
       this.loadError.set('');
     } catch (e) {
       // Se conservan los últimos pedidos mostrados.
