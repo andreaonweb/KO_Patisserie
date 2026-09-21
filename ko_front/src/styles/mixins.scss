@@ -43,6 +43,16 @@
   }
 }
 
+@keyframes koSlideLeft {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
 @keyframes koSlide {
   from {
     transform: translateX(100%);
