@@ -1,4 +1,5 @@
 import type { ChatMessageApi, ChatRole } from './chat.model';
+import type { OrderApiResponse } from '../services/order.service';
 
 export type ConnectionStatus = 'connecting' | 'open' | 'closed';
 
@@ -24,5 +25,10 @@ export interface ChatReadEvent {
   reader_role: ChatRole;
 }
 
+export interface OrderEvent {
+  type: 'order.created' | 'order.updated';
+  order: OrderApiResponse;
+}
+
 /** Eventos que envía el servidor. Se amplía en las ramas de chat y pedidos. */
-export type ServerEvent = ReadyEvent | ErrorEvent | ChatMessageEvent | ChatReadEvent;
+export type ServerEvent = ReadyEvent | ErrorEvent | ChatMessageEvent | ChatReadEvent | OrderEvent;
