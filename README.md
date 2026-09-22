@@ -102,14 +102,14 @@ Es un monorepo con dos aplicaciones:
 | Interfaz | Angular 21 (standalone, signals), RxJS, TypeScript 5.9, `lucide-angular` (iconos), SCSS |
 | Tipografías | Cormorant Garamond y Jost (Google Fonts) |
 | API | FastAPI, Pydantic, SQLAlchemy 2 (síncrono), Alembic |
-| Base de datos | PostgreSQL 16 (Docker); SQLite en memoria en los tests |
+| Base de datos | PostgreSQL 16 (Docker) en local; SQLite en memoria en los tests; Neon (Postgres serverless) en producción |
 | Autenticación | JWT (HS256, 7 días) y contraseñas con bcrypt |
 | Tiempo real | WebSocket de Starlette / FastAPI |
 | Tests | pytest + httpx (back); Vitest con `ng test` (front) |
 | Gestor de paquetes | `uv` (Python) y `npm` (Node) |
 | Datos externos | API iTransit de TMB (paradas y próximos autobuses) |
 | Imágenes de productos | Cloudinary (subida, almacenamiento y CDN) |
-| Despliegue | Render (Blueprint: web service + sitio estático + PostgreSQL) |
+| Despliegue | Render (Blueprint: web service + sitio estático) + Neon (PostgreSQL) |
 
 ---
 
@@ -361,20 +361,28 @@ El origen permitido por CORS y por el WebSocket se lee de `ALLOWED_ORIGINS`; por
 
 ## Despliegue
 
-El repo incluye un [`render.yaml`](./render.yaml) (Render Blueprint) que define los tres servicios: la API (`ko-patisserie-back`), la interfaz (`ko-patisserie-front`) y la base de datos (`ko-patisserie-db`).
+El repo incluye un [`render.yaml`](./render.yaml) (Render Blueprint) que define dos servicios: la API (`ko-patisserie-back`) y la interfaz (`ko-patisserie-front`).
 
-### 1. Cuenta de Cloudinary (gratis)
+La base de datos **no** se crea desde el Blueprint: Render sólo permite una base PostgreSQL gratuita por cuenta, y su plan free además expira a los 30 días. En su lugar, se usa [Neon](https://neon.tech) (Postgres serverless con capa gratuita permanente) como proveedor externo.
+
+### 1. Base de datos (Neon, gratis)
+
+1. Creá un proyecto en [console.neon.tech](https://console.neon.tech) (podés entrar con tu cuenta de GitHub).
+2. Copiá la **connection string** que te da (botón **Connect**).
+3. Adaptala al driver que usa el proyecto: cambiá el esquema `postgresql://` por `postgresql+psycopg://` al principio. El resto (usuario, contraseña, host, `?sslmode=require`) se deja igual.
+
+### 2. Cuenta de Cloudinary (gratis)
 
 Las imágenes de productos se suben a [Cloudinary](https://cloudinary.com) en vez de guardarse en disco (el filesystem de un servicio de Render es efímero). Creá una cuenta gratuita y copiá del dashboard: **Cloud name**, **API Key** y **API Secret**.
 
-### 2. Desplegar el Blueprint
+### 3. Desplegar el Blueprint
 
 1. En el [dashboard de Render](https://dashboard.render.com/), **New > Blueprint**.
 2. Elegí el repo `andreaonweb/KO_Patisserie` y la rama a desplegar.
-3. Render detecta `render.yaml` y propone los 3 servicios. Antes de confirmar, completá las variables marcadas como secretas:
-   - En `ko-patisserie-back`: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+3. Render detecta `render.yaml` y propone los 2 servicios. Antes de confirmar, completá las variables marcadas como secretas:
+   - En `ko-patisserie-back`: `DATABASE_URL` (la connection string de Neon, ya adaptada), `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
    - En `ko-patisserie-front`: `TMB_APP_ID`, `TMB_APP_KEY` (credenciales de la API de TMB).
-4. Confirmá. Render crea la base de datos, y luego construye y despliega la API y la interfaz. `JWT_SECRET` se genera solo; `DATABASE_URL` se conecta solo a la base de datos creada.
+4. Confirmá. Render construye y despliega la API y la interfaz. `JWT_SECRET` se genera solo.
 
 Si los nombres de servicio quedan distintos a `ko-patisserie-back`/`ko-patisserie-front` (por estar ya en uso), ajustá `ALLOWED_ORIGINS` (env var del backend) y `API_URL` (env var del frontend) en el dashboard para que apunten a las URLs reales que Render asignó, y volvé a desplegar ambos servicios.
 
@@ -390,8 +398,8 @@ Esto crea `admin@email.com` / `admin123` (las mismas credenciales que en local):
 
 ### Notas
 
-- El plan **free** de PostgreSQL en Render expira a los 30 días (se borra si no se actualiza a un plan pago); para un despliegue permanente, subí la base a un plan pago antes de esa fecha.
-- El plan **free** de los servicios web "duerme" tras 15 minutos sin tráfico; la primera petición tras dormir tarda unos segundos.
+- El plan **free** de Neon "escala a cero" tras un rato sin uso; la conexión siguiente tarda un poco más mientras se reactiva. El almacenamiento gratis es de 0.5 GB.
+- El plan **free** de los servicios web de Render "duerme" tras 15 minutos sin tráfico; la primera petición tras dormir tarda unos segundos.
 - Las migraciones (`alembic upgrade head`) corren solas en cada despliegue, como parte del `buildCommand` (el plan free de Render no soporta `preDeployCommand`).
 
 ---
