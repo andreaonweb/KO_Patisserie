@@ -18,17 +18,18 @@ Es un monorepo con dos aplicaciones:
 5. [Estructura del repositorio](#estructura-del-repositorio)
 6. [Puesta en marcha](#puesta-en-marcha)
 7. [Configuración](#configuración)
-8. [API REST](#api-rest)
-9. [Tiempo real (WebSocket)](#tiempo-real-websocket)
-10. [Modelo de datos](#modelo-de-datos)
-11. [Reglas de negocio](#reglas-de-negocio)
-12. [Tests](#tests)
-13. [Accesibilidad y diseño adaptable](#accesibilidad-y-diseño-adaptable)
-14. [Documentación de diseño](#documentación-de-diseño)
-15. [Forma de trabajo](#forma-de-trabajo)
-16. [Limitaciones conocidas y siguientes pasos](#limitaciones-conocidas-y-siguientes-pasos)
-17. [Créditos](#créditos)
-18. [Contacto](#-contacto)
+8. [Despliegue](#despliegue)
+9. [API REST](#api-rest)
+10. [Tiempo real (WebSocket)](#tiempo-real-websocket)
+11. [Modelo de datos](#modelo-de-datos)
+12. [Reglas de negocio](#reglas-de-negocio)
+13. [Tests](#tests)
+14. [Accesibilidad y diseño adaptable](#accesibilidad-y-diseño-adaptable)
+15. [Documentación de diseño](#documentación-de-diseño)
+16. [Forma de trabajo](#forma-de-trabajo)
+17. [Limitaciones conocidas y siguientes pasos](#limitaciones-conocidas-y-siguientes-pasos)
+18. [Créditos](#créditos)
+19. [Contacto](#-contacto)
 
 ---
 
@@ -332,6 +333,8 @@ No hay un script que cargue productos: la carta empieza vacía. Entra como admin
 |---|---|---|
 | `DATABASE_URL` | `postgresql+psycopg://ko:ko@localhost:5434/ko_patisserie` | Conexión a PostgreSQL |
 | `JWT_SECRET` | `dev-secret-change-in-production-please` | Clave para firmar los tokens. **Cámbiala en producción.** |
+| `ALLOWED_ORIGINS` | `http://localhost:4200` | Orígenes permitidos por CORS y por el WebSocket, separados por comas |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | (vacío) | Credenciales de [Cloudinary](https://cloudinary.com), donde se suben las imágenes de productos |
 
 ### Interfaz (`ko_front/src/environments/environment.ts`, se crea desde `environment.example.ts`)
 
@@ -339,6 +342,8 @@ No hay un script que cargue productos: la carta empieza vacía. Entra como admin
 |---|---|
 | `apiUrl` | Dirección de la API (`http://localhost:8000`). La del WebSocket se deriva de ella (`ws://…/ws`). |
 | `tmb.appId`, `tmb.appKey` | Credenciales de la API iTransit de TMB, para las paradas de autobús. |
+
+En despliegue (Render), este archivo no está en el repositorio (ver [Despliegue](#despliegue)) y se genera en el build a partir de variables de entorno.
 
 ### Puertos
 
@@ -348,7 +353,44 @@ No hay un script que cargue productos: la carta empieza vacía. Entra como admin
 | API | 8000 |
 | PostgreSQL | 5434 |
 
-El origen permitido por CORS y por el WebSocket es `http://localhost:4200`; está en `ko_back/app/core/origins.py`.
+El origen permitido por CORS y por el WebSocket se lee de `ALLOWED_ORIGINS`; por defecto es `http://localhost:4200` (ver `ko_back/app/core/origins.py`).
+
+---
+
+## Despliegue
+
+El repo incluye un [`render.yaml`](./render.yaml) (Render Blueprint) que define los tres servicios: la API (`ko-patisserie-back`), la interfaz (`ko-patisserie-front`) y la base de datos (`ko-patisserie-db`).
+
+### 1. Cuenta de Cloudinary (gratis)
+
+Las imágenes de productos se suben a [Cloudinary](https://cloudinary.com) en vez de guardarse en disco (el filesystem de un servicio de Render es efímero). Creá una cuenta gratuita y copiá del dashboard: **Cloud name**, **API Key** y **API Secret**.
+
+### 2. Desplegar el Blueprint
+
+1. En el [dashboard de Render](https://dashboard.render.com/), **New > Blueprint**.
+2. Elegí el repo `andreaonweb/KO_Patisserie` y la rama a desplegar.
+3. Render detecta `render.yaml` y propone los 3 servicios. Antes de confirmar, completá las variables marcadas como secretas:
+   - En `ko-patisserie-back`: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+   - En `ko-patisserie-front`: `TMB_APP_ID`, `TMB_APP_KEY` (credenciales de la API de TMB).
+4. Confirmá. Render crea la base de datos, y luego construye y despliega la API y la interfaz. `JWT_SECRET` se genera solo; `DATABASE_URL` se conecta solo a la base de datos creada.
+
+Si los nombres de servicio quedan distintos a `ko-patisserie-back`/`ko-patisserie-front` (por estar ya en uso), ajustá `ALLOWED_ORIGINS` (env var del backend) y `API_URL` (env var del frontend) en el dashboard para que apunten a las URLs reales que Render asignó, y volvé a desplegar ambos servicios.
+
+### 3. Primer usuario administrador
+
+El seed de administrador (`app/scripts/seed_admin.py`) sólo se usa en tests; no se ejecuta solo en producción. Para crear el primer admin, abrí una **Shell** en el servicio `ko-patisserie-back` desde el dashboard de Render y ejecutá:
+
+```bash
+uv run python -c "from app.core.database import SessionLocal; from app.scripts.seed_admin import seed_admin; seed_admin(SessionLocal())"
+```
+
+Esto crea `admin@email.com` / `admin123` (las mismas credenciales que en local): **iniciá sesión y cambiá la contraseña enseguida**, son públicas en este repo.
+
+### Notas
+
+- El plan **free** de PostgreSQL en Render expira a los 30 días (se borra si no se actualiza a un plan pago); para un despliegue permanente, subí la base a un plan pago antes de esa fecha.
+- El plan **free** de los servicios web "duerme" tras 15 minutos sin tráfico; la primera petición tras dormir tarda unos segundos.
+- Las migraciones (`alembic upgrade head`) corren solas en cada despliegue, vía `preDeployCommand`.
 
 ---
 
