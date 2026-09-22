@@ -108,6 +108,8 @@ Es un monorepo con dos aplicaciones:
 | Tests | pytest + httpx (back); Vitest con `ng test` (front) |
 | Gestor de paquetes | `uv` (Python) y `npm` (Node) |
 | Datos externos | API iTransit de TMB (paradas y próximos autobuses) |
+| Imágenes de productos | Cloudinary (subida, almacenamiento y CDN) |
+| Despliegue | Render (Blueprint: web service + sitio estático + PostgreSQL) |
 
 ---
 
