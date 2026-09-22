@@ -12,20 +12,26 @@ def _auth(token: str) -> dict[str, str]:
 
 
 @pytest.fixture(autouse=True)
-def tmp_upload_dir(tmp_path, monkeypatch):
-    monkeypatch.setattr(uploads, "UPLOAD_DIR", tmp_path)
-    return tmp_path
+def fake_cloudinary(monkeypatch):
+    calls: list[bytes] = []
+
+    def fake_upload(data: bytes, **kwargs):
+        calls.append(data)
+        return {"secure_url": "https://res.cloudinary.com/demo/image/upload/v1/ko_patisserie/products/fake.jpg"}
+
+    monkeypatch.setattr(uploads.cloudinary.uploader, "upload", fake_upload)
+    return calls
 
 
 @pytest.mark.parametrize(("data", "ext"), [(JPEG, ".jpg"), (PNG, ".png"), (WEBP, ".webp")])
-def test_admin_can_upload_supported_images(client, admin_token, tmp_upload_dir, data, ext) -> None:
+def test_admin_can_upload_supported_images(client, admin_token, fake_cloudinary, data, ext) -> None:
     response = client.post(
         "/uploads/products", files={"file": ("foto.bin", data, "application/octet-stream")}, headers=_auth(admin_token)
     )
     assert response.status_code == 201
     url = response.json()["url"]
-    assert url.startswith("/uploads/") and url.endswith(ext)
-    assert (tmp_upload_dir / url.rsplit("/", 1)[1]).read_bytes() == data
+    assert url == "https://res.cloudinary.com/demo/image/upload/v1/ko_patisserie/products/fake.jpg"
+    assert fake_cloudinary == [data]
 
 
 def test_upload_rejects_non_image_even_with_image_content_type(client, admin_token) -> None:
@@ -49,3 +55,12 @@ def test_customer_cannot_upload(client, customer_token) -> None:
 def test_anonymous_cannot_upload(client) -> None:
     response = client.post("/uploads/products", files={"file": ("a.jpg", JPEG, "image/jpeg")})
     assert response.status_code in (401, 403)
+
+
+def test_upload_returns_502_when_cloudinary_fails(client, admin_token, monkeypatch) -> None:
+    def failing_upload(data: bytes, **kwargs):
+        raise RuntimeError("network error")
+
+    monkeypatch.setattr(uploads.cloudinary.uploader, "upload", failing_upload)
+    response = client.post("/uploads/products", files={"file": ("a.jpg", JPEG, "image/jpeg")}, headers=_auth(admin_token))
+    assert response.status_code == 502

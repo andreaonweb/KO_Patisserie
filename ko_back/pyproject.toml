@@ -12,6 +12,7 @@ dependencies = [
     "bcrypt>=5.0.0",
     "pyjwt>=2.14.0",
     "python-multipart>=0.0.32",
+    "cloudinary>=1.41",
 ]
 
 [dependency-groups]
