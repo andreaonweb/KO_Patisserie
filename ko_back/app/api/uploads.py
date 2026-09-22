@@ -1,17 +1,24 @@
-import uuid
-from pathlib import Path
-
+import cloudinary
+import cloudinary.uploader
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
+from app.core.config import settings
 from app.core.deps import require_admin
 from app.models.user import User
 
-UPLOAD_DIR = Path(__file__).resolve().parents[2] / "uploads"
-UPLOAD_URL_PREFIX = "/uploads"
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
+CLOUDINARY_FOLDER = "ko_patisserie/products"
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
+
+cloudinary.config(
+    cloud_name=settings.cloudinary_cloud_name,
+    api_key=settings.cloudinary_api_key,
+    api_secret=settings.cloudinary_api_secret,
+    secure=True,
+)
 
 
 class UploadResponse(BaseModel):
@@ -38,7 +45,16 @@ async def upload_product_image(file: UploadFile, _admin: User = Depends(require_
     if extension is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Formato no válido: usa JPG, PNG o WebP")
 
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    filename = f"{uuid.uuid4().hex}{extension}"
-    (UPLOAD_DIR / filename).write_bytes(data)
-    return UploadResponse(url=f"{UPLOAD_URL_PREFIX}/{filename}")
+    try:
+        result = await run_in_threadpool(
+            cloudinary.uploader.upload,
+            data,
+            folder=CLOUDINARY_FOLDER,
+            resource_type="image",
+        )
+    except Exception as exc:  # pragma: no cover - error de red/credenciales del proveedor
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail="No se pudo subir la imagen al proveedor de almacenamiento"
+        ) from exc
+
+    return UploadResponse(url=result["secure_url"])
