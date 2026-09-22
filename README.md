@@ -388,10 +388,13 @@ Si los nombres de servicio quedan distintos a `ko-patisserie-back`/`ko-patisseri
 
 ### 3. Primer usuario administrador
 
-El seed de administrador (`app/scripts/seed_admin.py`) sólo se usa en tests; no se ejecuta solo en producción. Para crear el primer admin, abrí una **Shell** en el servicio `ko-patisserie-back` desde el dashboard de Render y ejecutá:
+El seed de administrador (`app/scripts/seed_admin.py`) sólo se usa en tests; no se ejecuta solo en producción. El plan free de Render no incluye Shell, así que el primer admin se crea corriendo el script **desde tu máquina**, apuntando temporalmente a la base de producción (Neon):
 
-```bash
+```powershell
+cd ko_back
+$env:DATABASE_URL = "postgresql+psycopg://...tu-connection-string-de-neon..."
 uv run python -c "from app.core.database import SessionLocal; from app.scripts.seed_admin import seed_admin; seed_admin(SessionLocal())"
+Remove-Item Env:DATABASE_URL
 ```
 
 Esto crea `admin@email.com` / `admin123` (las mismas credenciales que en local): **iniciá sesión y cambiá la contraseña enseguida**, son públicas en este repo.
