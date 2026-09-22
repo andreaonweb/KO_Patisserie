@@ -392,7 +392,7 @@ Esto crea `admin@email.com` / `admin123` (las mismas credenciales que en local):
 
 - El plan **free** de PostgreSQL en Render expira a los 30 días (se borra si no se actualiza a un plan pago); para un despliegue permanente, subí la base a un plan pago antes de esa fecha.
 - El plan **free** de los servicios web "duerme" tras 15 minutos sin tráfico; la primera petición tras dormir tarda unos segundos.
-- Las migraciones (`alembic upgrade head`) corren solas en cada despliegue, vía `preDeployCommand`.
+- Las migraciones (`alembic upgrade head`) corren solas en cada despliegue, como parte del `buildCommand` (el plan free de Render no soporta `preDeployCommand`).
 
 ---
 
