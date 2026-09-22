@@ -1,3 +1,5 @@
+import logging
+
 import cloudinary
 import cloudinary.uploader
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
@@ -7,6 +9,8 @@ from starlette.concurrency import run_in_threadpool
 from app.core.config import settings
 from app.core.deps import require_admin
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 CLOUDINARY_FOLDER = "ko_patisserie/products"
@@ -53,6 +57,7 @@ async def upload_product_image(file: UploadFile, _admin: User = Depends(require_
             resource_type="image",
         )
     except Exception as exc:  # pragma: no cover - error de red/credenciales del proveedor
+        logger.exception("Fallo al subir imagen a Cloudinary")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY, detail="No se pudo subir la imagen al proveedor de almacenamiento"
         ) from exc
